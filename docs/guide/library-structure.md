@@ -106,6 +106,25 @@ books/
 
 Users with explicit content disabled will not see this system or its books.
 
+### Sort-order prefixes
+
+Many file browsers sort folders alphabetically, so it's common to prepend
+punctuation to a folder name to pull it to the top of the list. Grimoire ignores
+a leading run of `!`, `$`, or `%` characters when deriving a system's name — only
+the contiguous run at the very start is stripped, and everything from the first
+other character onward is kept as-is:
+
+```
+books/
+├── !!Dungeons & Dragons/   → shown as "Dungeons & Dragons"
+├── !system-agnostic/       → still the System-Agnostic collection
+└── $%Pathfinder 2e/        → shown as "Pathfinder 2e"
+```
+
+Only `!`, `$`, and `%` are recognized, and only as a leading prefix — internal
+occurrences (e.g. `D&D $ Extras`) are left untouched. The prefix also stacks with
+`(nsfw)`, so `!!Forbidden Lore (NSFW)` becomes the explicit system "Forbidden Lore".
+
 ## Maps
 
 ```

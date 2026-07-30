@@ -23,6 +23,7 @@
 |---|---|---|
 | `VALKEY_URL` | _none_ | Redis-compatible cache URL for rendered page images (e.g. `redis://valkey:6379/0`). Falls back to disk cache when unset. Also shares auth rate-limit counters across replicas; see [Security](/configuration/security). |
 | `OPDS_ENABLED` | `false` | Set to `true` to enable the OPDS catalog. |
+| `DISABLE_VERSION_CHECKING` | `false` | Set to `true` to disable the "update available" check. When off, Grimoire proxies GitHub's releases API server-side (cached ~1h) so the sidebar can show when a newer release exists; when on, no outbound request to GitHub is ever made and no update banner appears. |
 
 ## Library scanning
 
