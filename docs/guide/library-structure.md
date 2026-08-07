@@ -83,7 +83,7 @@ Archives are treated as opaque downloads: Grimoire does not extract or read thei
 
 ### System-agnostic collections
 
-Some books don't belong to a single game system. Create a folder with one of these names and Grimoire displays its contents in a separate **System-Agnostic** section:
+Some books don't belong to a single game system. Create a folder with one of these names and Grimoire displays its contents in a separate **Special Collections** section:
 
 | Folder name |
 |---|
@@ -92,6 +92,91 @@ Some books don't belong to a single game system. Create a folder with one of the
 | `Any` |
 
 Subfolders directly under the agnostic root become custom category headings, and the folder name is used as-is.
+
+### One-page and micro RPG collections
+
+Some "systems" are really a bucket of many tiny games. Folders with one of these names are treated as a **sub-library**: a single tidy entry in the Special Collections strip whose contents are each their own game system.
+
+| Folder name |
+|---|
+| `One-Page RPGs` |
+| `Single-Page RPGs` |
+| `One-Shot RPGs` |
+| `Micro RPGs` |
+
+Both subfolders **and** loose files at the root become systems:
+
+```
+books/
+└── One-Page RPGs/
+    ├── honey-heist.pdf          → system "Honey Heist" (1 book)
+    ├── lasers-and-feelings.pdf  → system "Lasers And Feelings" (1 book)
+    └── cbr+pnk/                 → system "Cbr+pnk" (2 books)
+        ├── core/
+        │   └── core-rules.pdf
+        └── character-sheets/
+            └── character.pdf
+```
+
+A single-file game becomes a system holding that one book; a folder-backed game keeps its internal category structure. Either way, each game gets full system metadata, tags, and system-level filtering — so a pile of one-shot PbtA games can all be found by system without cluttering the main library grid.
+
+::: tip Systems count
+Games nested inside a collection count toward your library's game-system total. If you already use a `One-Page RPGs` folder, that number rises after the first rescan as each game inside becomes its own system.
+:::
+
+### Parent systems and editions
+
+A folder can also be a shelf for the editions of one game. Drop a `.parent-system-container` marker file at its root (or add a `(parent-system)` suffix to the folder name), and its immediate subfolders become systems:
+
+```
+books/
+└── Dungeons & Dragons/
+    ├── .parent-system-container
+    ├── 3e/
+    │   └── core/
+    │       └── Players Handbook.pdf
+    └── 5e/
+        └── core/
+            └── Players Handbook.pdf
+```
+
+This yields the systems "Dungeons & Dragons 3e" and "Dungeons & Dragons 5e", each with **Parent System** set to "Dungeons & Dragons" and **Edition** set to the folder name — both available as library filters. Category folders work normally inside each edition.
+
+### Declaring a container
+
+Any of these declare a folder to be a container of systems, and they combine with `(nsfw)` and sort-order prefixes:
+
+| Method | Example | Kind |
+|---|---|---|
+| Marker file | `books/D&D/.parent-system-container` | Parent system |
+| Marker file | `books/Itch Bundle/.one-page-container` | One-page collection |
+| Folder-name suffix | `books/Cyberpunk (parent-system)/` | Parent system |
+| Folder-name suffix | `books/Jam Games (one-page)/` | One-page collection |
+| Recognized name | `books/One-Page RPGs/` | One-page collection |
+
+Child systems get a default name — `{Parent} {Edition}` for parent systems, the prettified file or folder name for one-page games. Rename one in the UI and it sticks: rescans never overwrite a system you have renamed, so "Dungeons & Dragons 2e" can become "Advanced Dungeons & Dragons".
+
+### Reorganizing an existing library
+
+Moving a flat `books/Dungeons & Dragons 5e/` into `books/Dungeons & Dragons/5e/` produces a child whose generated name matches the system you already have. Grimoire adopts that existing system instead of creating a duplicate — its books, metadata, tags, and cover follow it into the container, and the old entry disappears from the top level.
+
+### System cover art
+
+A system's cover comes from the first of these that exists:
+
+1. a `cover.*` or `folder.*` image at the system's folder root,
+2. an image uploaded from the system's page (**Cover image**, GM/admin only),
+3. a thumbnail from one of the system's books.
+
+Container folders hold no books of their own, so options 1 and 2 are the only ones available to them:
+
+```
+books/
+└── Dungeons & Dragons/
+    ├── .parent-system-container
+    ├── cover.jpg           ← folder artwork
+    └── 5e/
+```
 
 ### Explicit content
 
@@ -105,6 +190,16 @@ books/
 ```
 
 Users with explicit content disabled will not see this system or its books.
+
+An empty `.nsfw` file at the system root does the same thing, for when parenthesised folder names are awkward for your filesystem or sync tool:
+
+```
+books/
+└── Some Adult Game/
+    ├── .nsfw
+    └── core/
+        └── rulebook.pdf
+```
 
 ### Sort-order prefixes
 
