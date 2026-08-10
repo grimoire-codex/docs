@@ -142,6 +142,56 @@ books/
 
 This yields the systems "Dungeons & Dragons 3e" and "Dungeons & Dragons 5e", each with **Parent System** set to "Dungeons & Dragons" and **Edition** set to the folder name — both available as library filters. Category folders work normally inside each edition.
 
+### System families
+
+A family groups related but *distinct* systems that share a lineage — unlike a parent system, whose children are editions of one game. Use a `.system-family-container` marker (or a `(system-family)` folder-name suffix):
+
+```
+books/
+└── d20 System/
+    ├── .system-family-container
+    ├── Pathfinder/
+    │   ├── .parent-system-container
+    │   ├── 1e/
+    │   └── 2e/
+    ├── Mutants & Masterminds/
+    └── d20 Modern/
+```
+
+Each child indexes as an independent system, and the container's name populates its **System Family** field, so the folder structure lines up with the family filter. Family children keep their own names — no `{Parent} {Child}` prefixing — and get no **Edition** or **Parent System**, because they are not variants of anything.
+
+Containers nest: as shown above, a family can hold a multi-edition system. The inner `.parent-system-container` resolves its editions exactly as it would at the top level, and inherits the family name itself.
+
+### Publisher containers
+
+A `.publisher-container` marker (or a `(publisher)` suffix) groups the systems one company puts out:
+
+```
+books/
+└── Paizo/
+    ├── .publisher-container
+    ├── Pathfinder 2e/
+    └── Starfinder/
+```
+
+Each child is an independent system with the container's name recorded as its **Publisher**.
+
+### Generic containers
+
+If your shelf does not fit any of the named kinds, a bare `.container` marker (or a `(container)` suffix) says only "the folders in here are systems" and claims nothing about how they relate:
+
+```
+books/
+└── Kickstarter Hauls/
+    ├── .container
+    ├── Mörk Borg/
+    └── Mothership/
+```
+
+Unlike the named kinds it propagates no metadata — no family, publisher, edition, or parent system. It groups, and nothing more.
+
+Family and publisher containers only fill in metadata a system does not already have. A family or publisher set by an OPF sidecar, an add-on, or your own edit is never overwritten by a rescan.
+
 ### Declaring a container
 
 Any of these declare a folder to be a container of systems, and they combine with `(nsfw)` and sort-order prefixes:
@@ -150,11 +200,25 @@ Any of these declare a folder to be a container of systems, and they combine wit
 |---|---|---|
 | Marker file | `books/D&D/.parent-system-container` | Parent system |
 | Marker file | `books/Itch Bundle/.one-page-container` | One-page collection |
+| Marker file | `books/d20 System/.system-family-container` | System family |
+| Marker file | `books/Paizo/.publisher-container` | Publisher |
+| Marker file | `books/Kickstarter Hauls/.container` | Generic |
 | Folder-name suffix | `books/Cyberpunk (parent-system)/` | Parent system |
 | Folder-name suffix | `books/Jam Games (one-page)/` | One-page collection |
+| Folder-name suffix | `books/Powered by the Apocalypse (system-family)/` | System family |
+| Folder-name suffix | `books/Chaosium (publisher)/` | Publisher |
+| Folder-name suffix | `books/My Shelf (container)/` | Generic |
 | Recognized name | `books/One-Page RPGs/` | One-page collection |
 
-Child systems get a default name — `{Parent} {Edition}` for parent systems, the prettified file or folder name for one-page games. Rename one in the UI and it sticks: rescans never overwrite a system you have renamed, so "Dungeons & Dragons 2e" can become "Advanced Dungeons & Dragons".
+If a folder carries more than one declaration, the most specific kind wins, in this order: **parent system → one-page → system family → publisher → generic**. Every recognized suffix is stripped from the stored name either way, so a stray `(publisher)` never reaches the UI.
+
+Child systems get a default name — `{Parent} {Edition}` for parent systems, the prettified file or folder name for one-page games, and their own folder name for family, publisher, and generic children. Only a parent-system container sets its children's **Parent System**: the other kinds hold independent games, not variants of the shelf. Rename one in the UI and it sticks: rescans never overwrite a system you have renamed, so "Dungeons & Dragons 2e" can become "Advanced Dungeons & Dragons".
+
+### Flattening containers in the library
+
+Containers organize the grid; they do not lock systems away. The **Group collections** switch beside the "Your Collection" heading — shown only once you have a container — flattens them: container cards drop out and their child systems take their place, giving a plain list of every real system with the usual sorting and filters applied. Turn it back on to return to the drill-down view. The choice is remembered across sessions.
+
+One-page collections are the deliberate exception and stay grouped either way. Keeping a pile of tiny one-book games out of the main grid is the entire reason that collection exists, so flattening leaves its chip in the Special Collections strip and its games reachable by drilling in.
 
 ### Reorganizing an existing library
 
