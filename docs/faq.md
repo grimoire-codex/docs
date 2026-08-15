@@ -1,5 +1,15 @@
 # Frequently Asked Questions
 
+## Do you collect telemetry data?
+
+No.
+
+Grimoire is self-hosted, you own your data, and it stays on your server. Sending any of it to an external service without a user directly doing so goes against the ethos of the project. Grimoire can pull data from external sources, but server owners can disable that behavior entirely if they'd prefer a fully isolated instance.
+
+This is a deliberate tradeoff. Without telemetry I don't receive crash and error reports, feature usage statistics, performance metrics, or version adoption data — the kinds of signals most developers rely on to catch bugs early and decide what to work on next. That means I depend on you: if something breaks or feels rough, please open an issue on GitHub or drop a note in the Discord. A good bug report is worth more to me than any analytics dashboard.
+
+---
+
 ## I forgot my admin password. How do I reset it?
 
 Reset the password directly in the database by running a one-liner inside the running container:
