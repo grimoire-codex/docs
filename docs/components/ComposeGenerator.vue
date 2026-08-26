@@ -175,11 +175,28 @@
       </div>
     </section>
 
-    <!-- File manager -->
+    <!-- Library access -->
     <section class="cg-section">
-      <h2>File manager <span class="cg-hint optional">(optional)</span></h2>
+      <h2>Library access</h2>
       <p class="cg-desc">
-        Grimoire mounts your library read-only. Add a companion tool to upload and manage files.
+        A writable library mount lets admins upload, move, rename, and delete files from inside
+        Grimoire, and lets it export metadata sidecars. Uncheck it to mount the library
+        <code>:ro</code> — everything else works the same, and those two features are hidden.
+      </p>
+      <div class="cg-toggles">
+        <label class="cg-toggle">
+          <input type="checkbox" v-model="form.libraryWritable" />
+          <span>Writable library <span class="cg-hint">(in-app file management and sidecar export)</span></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Companion tools -->
+    <section class="cg-section">
+      <h2>Companion tools <span class="cg-hint optional">(optional)</span></h2>
+      <p class="cg-desc">
+        Grimoire manages library files itself. Add Calibre alongside it for ebook conversion and
+        bulk metadata editing.
       </p>
       <div class="cg-radio-group">
         <label v-for="fm in fileManagers" :key="fm.value" :class="['cg-radio', { active: form.fileManager === fm.value }]">
@@ -263,6 +280,7 @@ const form = reactive({
   ocrLanguages: 'eng',
   ocrConcurrency: 1,
   ocrDpi: 150,
+  libraryWritable: true,
   fileManager: 'none',
   puid: 1000,
   pgid: 1000,
@@ -289,8 +307,7 @@ const ocrModes = [
 ]
 
 const fileManagers = [
-  { value: 'none', label: 'None', desc: 'Manage files manually via SSH, SFTP, or your OS' },
-  { value: 'filebrowser', label: 'Filebrowser Quantum', desc: 'Lightweight browser-based file manager (port 8080)' },
+  { value: 'none', label: 'None', desc: 'Grimoire only — manage files in-app or from your OS' },
   { value: 'calibre', label: 'Calibre', desc: 'Full Calibre desktop via noVNC: metadata editing + OPF export (port 8080)' },
   { value: 'calibre-web', label: 'Calibre-Web', desc: 'Lightweight browser UI for an existing Calibre library (port 8083)' },
 ]
@@ -377,8 +394,8 @@ function envBlock(indent = '      ') {
   return lines.join('\n')
 }
 
-function volumeBlock(indent = '      ', readonly = true) {
-  const ro = readonly ? ':ro' : ''
+function volumeBlock(indent = '      ') {
+  const ro = form.libraryWritable ? '' : ':ro'
   return [
     `${indent}- ${form.libraryPath}:/library${ro}`,
     `${indent}- ${form.dataPath}:/data`,
@@ -408,26 +425,6 @@ function valkeyService() {
     restart: unless-stopped
     volumes:
       - valkey_data:/data
-    networks:
-      - grimoire`
-}
-
-function filebrowserService() {
-  return `
-  filebrowser:
-    image: gtsteffaniak/filebrowser:latest
-    container_name: grimoire-filebrowser
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    environment:
-      - FB_ROOT=/srv
-      - FB_DATABASE=/database/filebrowser.db
-      - FB_ADDRESS=0.0.0.0
-      - FB_PORT=8080
-    volumes:
-      - ${form.libraryPath}:/srv
-      - filebrowser_data:/database
     networks:
       - grimoire`
 }
@@ -475,7 +472,6 @@ function calibreWebService() {
 function volumesBlock() {
   const vols = []
   if (form.valkeyEnabled) vols.push('  valkey_data:')
-  if (form.fileManager === 'filebrowser') vols.push('  filebrowser_data:')
   if (form.fileManager === 'calibre') vols.push('  calibre_config:')
   if (form.fileManager === 'calibre-web') vols.push('  calibre_web_config:')
   return vols.length ? `\nvolumes:\n${vols.join('\n')}` : ''
@@ -493,7 +489,6 @@ function buildCompose() {
   const useNet = needsNetwork.value
   let out = `services:\n${grimoireService(useNet)}`
   if (form.valkeyEnabled) out += valkeyService()
-  if (form.fileManager === 'filebrowser') out += filebrowserService()
   if (form.fileManager === 'calibre') out += calibreService()
   if (form.fileManager === 'calibre-web') out += calibreWebService()
   out += volumesBlock()
@@ -514,7 +509,6 @@ function buildQuadletGrimoire() {
 
   const deps = []
   if (form.valkeyEnabled) deps.push('After=valkey.service')
-  if (form.fileManager === 'filebrowser') deps.push('After=grimoire-filebrowser.service')
   if (form.fileManager === 'calibre') deps.push('After=grimoire-calibre.service')
   if (form.fileManager === 'calibre-web') deps.push('After=grimoire-calibre-web.service')
 
@@ -525,7 +519,7 @@ ${deps.length ? deps.join('\n') + '\n' : ''}
 Image=${imageRef.value}
 ContainerName=grimoire
 PublishPort=${form.hostPort}:9481
-Volume=${form.libraryPath}:/library:ro
+Volume=${form.libraryPath}:/library${form.libraryWritable ? '' : ':ro'}
 Volume=${form.dataPath}:/data
 ${envLines.join('\n')}
 AutoUpdate=registry
@@ -545,29 +539,6 @@ Description=Valkey page cache for Grimoire
 Image=valkey/valkey:8-alpine
 ContainerName=grimoire-valkey
 Volume=grimoire-valkey-data:/data
-AutoUpdate=registry
-
-[Service]
-Restart=always
-
-[Install]
-WantedBy=default.target`
-}
-
-function buildQuadletFilebrowser() {
-  return `[Unit]
-Description=Filebrowser Quantum for Grimoire library management
-
-[Container]
-Image=gtsteffaniak/filebrowser:latest
-ContainerName=grimoire-filebrowser
-PublishPort=8080:8080
-Volume=${form.libraryPath}:/srv
-Volume=grimoire-filebrowser-data:/database
-Environment=FB_ROOT=/srv
-Environment=FB_DATABASE=/database/filebrowser.db
-Environment=FB_ADDRESS=0.0.0.0
-Environment=FB_PORT=8080
 AutoUpdate=registry
 
 [Service]
@@ -626,7 +597,6 @@ WantedBy=default.target`
 const quadletFiles = computed(() => {
   const files = { 'grimoire.container': buildQuadletGrimoire() }
   if (form.valkeyEnabled) files['grimoire-valkey.container'] = buildQuadletValkey()
-  if (form.fileManager === 'filebrowser') files['grimoire-filebrowser.container'] = buildQuadletFilebrowser()
   if (form.fileManager === 'calibre') files['grimoire-calibre.container'] = buildQuadletCalibre()
   if (form.fileManager === 'calibre-web') files['grimoire-calibre-web.container'] = buildQuadletCalibreWeb()
   return files

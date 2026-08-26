@@ -88,6 +88,5 @@ Ready-to-copy compose files are in the [grimoire repository](https://github.com/
 |---|---|
 | `docker-compose.yml` | Grimoire only (minimal) |
 | `docker-compose.valkey.yml` | + Valkey page cache |
-| `docker-compose.filebrowser.yml` | + Filebrowser Quantum |
 | `docker-compose.calibre.yml` | + Calibre full desktop |
 | `docker-compose.calibre-web.yml` | + Calibre-Web |

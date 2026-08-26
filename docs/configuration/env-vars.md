@@ -25,6 +25,19 @@
 | `OPDS_ENABLED` | `false` | Set to `true` to enable the OPDS catalog. |
 | `DISABLE_VERSION_CHECKING` | `false` | Set to `true` to disable the "update available" check. When off, Grimoire proxies GitHub's releases API server-side (cached ~1h) so the sidebar can show when a newer release exists; when on, no outbound request to GitHub is ever made and no update banner appears. |
 
+## Backups
+
+All four are configurable in the UI under **Settings → Maintenance → Backups**. Setting one here pins it: the value wins and the field is read-only in Settings. See [Backups](/configuration/backups).
+
+| Variable | Default | Description |
+|---|---|---|
+| `BACKUP_DIR` | `DATA_PATH/backups` | Where backup archives are written. Point at another mounted volume to keep backups off the main disk. |
+| `BACKUP_SCHEDULE` | `off` | `off`, `hourly`, `daily`, or `weekly`. |
+| `BACKUP_RETENTION_COUNT` | `0` | Keep at most this many backups, deleting oldest-first. `0` = unlimited. |
+| `BACKUP_RETENTION_GB` | `0` | Keep at most this many gigabytes of backups in total, deleting oldest-first. `0` = unlimited. |
+
+Backups cover the database and the files you uploaded through Grimoire, but **not your library**, which you should back up separately.
+
 ## Library scanning
 
 | Variable | Description |

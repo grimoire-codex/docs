@@ -57,7 +57,7 @@ If you organize your folders differently and don't want Grimoire deriving catego
 
 There are two ways to disable it, applied in this order of precedence:
 
-1. **Globally** — turn it off for the whole library in **Settings → Maintenance → Folder Category Inference**, or pin it with the [`DISABLE_FOLDER_CATEGORY_INFERENCE`](/configuration/env-vars#library-scanning) environment variable. When the env var is set, the in-app toggle shows the effective value read-only.
+1. **Globally** — turn it off for the whole library in **Settings → Application → Folder Category Inference**, or pin it with the [`DISABLE_FOLDER_CATEGORY_INFERENCE`](/configuration/env-vars#library-scanning) environment variable. When the env var is set, the in-app toggle shows the effective value read-only.
 2. **Per game system** — place an empty file named `.no-auto-category` at a system's folder root (e.g. `books/My System/.no-auto-category`) to disable inference for just that system while leaving the rest of the library on the default behavior.
 
 The change takes effect on the next scan of the affected books.
@@ -231,6 +231,8 @@ A system's cover comes from the first of these that exists:
 1. a `cover.*` or `folder.*` image at the system's folder root,
 2. an image uploaded from the system's page (**Cover image**, GM/admin only),
 3. a thumbnail from one of the system's books.
+
+A `cover.*` / `folder.*` image at a system's folder root is artwork only — it is not also indexed as a book. The same name deeper in the tree (in a category folder, say) is an ordinary image book.
 
 Container folders hold no books of their own, so options 1 and 2 are the only ones available to them:
 

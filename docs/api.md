@@ -325,6 +325,30 @@ Statuses: `available`, `tentative`, `unavailable`
 
 ---
 
+## Backups *(admin only)*
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/backups` | GET | List backups, newest first, with `created_at`, `size_bytes`, and `version` |
+| `/api/backups` | POST | Create a backup now |
+| `/api/backups/settings` | GET | Read backup schedule, retention, and storage location |
+| `/api/backups/settings` | PUT | Configure schedule, retention, and storage location |
+| `/api/backups/{backup_id}/download` | GET | Download a backup archive (`application/zip`) |
+| `/api/backups/{backup_id}` | DELETE | Delete a backup archive (`204`) |
+
+A backup is a timestamped `.zip` holding a consistent snapshot of the database plus the
+files uploaded through Grimoire. The **library is never included**. Because the listing
+carries timestamps, a client can check how stale the newest backup is and take a fresh one
+before running something destructive.
+
+Creating a backup pauses database writes for the length of the snapshot; a second
+concurrent create returns `409`.
+
+**There is no restore endpoint, by design.** See [Backups](/configuration/backups) for the
+restore procedure and configuration.
+
+---
+
 ## Logs *(admin only)*
 
 | Endpoint | Method | Description |

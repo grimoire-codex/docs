@@ -10,9 +10,18 @@ Grimoire is a self-hosted web application for managing your tabletop RPG PDF col
 - **Tracks** maps, tokens, audio, and archive files alongside books in the same library, with a persistent global audio player
 - **Supports** campaigns (with a notes wiki, character sheets, and guest invites), bookmarks, favorites, OPDS feeds, and OpenID Connect authentication
 
-## What it does not do
+## What it writes
 
-Grimoire is a **read-only viewer**. It never modifies the files in your library folder. Adding, removing, or reorganizing files is done with whatever tool you prefer: a file manager, Calibre, Filebrowser Quantum, or just your OS. After making changes, trigger a **Rescan** in the Grimoire UI to pick them up.
+Grimoire reads from your library folder and only writes to it when you ask it
+to. Browsing, searching, reading, and metadata editing never touch your files.
+Two admin-only features do write: [file management](/deployment/file-management)
+(upload, move, rename, delete) and
+[sidecar export](/guide/opf-metadata#writing-metadata-back-out). Both need the
+library mounted writable, which is the default; mount it `:ro` and the rest of
+Grimoire works unchanged. See [Volumes](/configuration/volumes#read-only-or-writable).
+
+If you add or reorganize files from outside Grimoire, trigger a **Rescan** in the
+UI to pick the changes up.
 
 ## Stack
 

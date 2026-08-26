@@ -38,7 +38,7 @@ Alternatively, create a new admin account by [pre-seeding a users file](/configu
 Grimoire expects a `books/` subfolder at the root of the library mount:
 
 ```
-/library/
+/app/library/
   books/
     D&D 5e/
       Core Rules/
@@ -49,7 +49,7 @@ Grimoire expects a `books/` subfolder at the root of the library mount:
 
 If your PDFs live directly under the mounted folder without a `books/` subfolder, the scanner finds nothing.
 
-**Fix**: mount your folder directly as `/app/library/books`:
+**Fix**: mount your folder directly as the `books/` directory:
 
 ```yaml
 volumes:
@@ -58,6 +58,14 @@ volumes:
 ```
 
 This keeps your existing host structure without adding an extra `books/` folder. Restart the stack and trigger a rescan.
+
+::: warning Match the path you actually mount
+`/app/library` is only the default. If your compose file sets `LIBRARY_PATH`, mount
+`books/` under *that* path instead — for example, the
+[Docker install guide](/guide/docker-install#step-3-create-the-compose-file) uses
+`LIBRARY_PATH=/library`, so the mount there is `/path/to/your/rpgs:/library/books:ro`.
+A mount that doesn't match `LIBRARY_PATH` scans nothing.
+:::
 
 ::: info
 **Cleanup missing** removes database records for files that can't be found at their expected paths. If you moved files before fixing the mount, those records were removed; re-mounting correctly and rescanning will re-add everything.

@@ -73,6 +73,25 @@ library/books/
         └── Dungeon Masters Guide.pdf
 ```
 
+::: warning Already have a folder full of PDFs?
+Grimoire only scans inside `books/`, `maps/`, and `tokens/`. If your PDFs live
+directly under the mounted folder without a `books/` subfolder, the scanner finds
+nothing.
+
+Rather than reshuffling your files, mount your existing folder straight onto
+`books/` in [Step 3](#step-3-create-the-compose-file):
+
+```yaml
+volumes:
+  # Mount an existing PDF folder directly as the books/ directory
+  - /path/to/your/rpgs:/library/books:ro
+  - /YOUR/DATA/PATH:/data
+```
+
+This keeps your host structure untouched. See the
+[FAQ](/faq#the-scanner-finds-no-books-after-i-reorganized-my-library) for more.
+:::
+
 ## Step 3: Create the compose file
 
 Use the **[Compose Generator](/compose-generator)** to build your `docker-compose.yml` with your paths and a generated secret key already filled in, then just download and run it.
@@ -94,6 +113,8 @@ services:
       - SECRET_KEY=replace-this-with-a-long-random-string
     volumes:
       - /YOUR/LIBRARY/PATH:/library:ro
+      # Or, if your PDFs already sit in one folder, mount it as books/ instead:
+      # - /path/to/your/rpgs:/library/books:ro
       - /YOUR/DATA/PATH:/data
 ```
 

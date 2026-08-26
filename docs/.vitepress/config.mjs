@@ -66,6 +66,7 @@ export default defineConfig({
             { text: 'Environment Variables', link: '/configuration/env-vars' },
             { text: 'Volumes', link: '/configuration/volumes' },
             { text: 'Pre-seeding Users', link: '/configuration/users' },
+            { text: 'Backups', link: '/configuration/backups' },
             { text: 'Performance', link: '/configuration/performance' },
             { text: 'Security', link: '/configuration/security' },
           ],
