@@ -175,10 +175,33 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | `/api/maps` | GET | any | Paginated map list. Query: `limit`, `offset`, `tag` |
 | `/api/maps/:id` | GET | any | Map detail |
 | `/api/maps/:id` | PATCH | gm/admin | Update `description`, `tags`, `map_type`, `grid_size` |
-| `/api/maps/:id/file` | GET | any | Download/stream the map image |
+| `/api/maps/:id/file` | GET | any | Download/stream the original map file |
+| `/api/maps/:id/page/:n` | GET | any | Downscaled WebP render. Query: `width` (default 1600, max 3000) |
+| `/api/maps/:id/vtt/image` | GET | any | Battlemap image decoded out of a `.uvtt`/`.dd2vtt` file |
+| `/api/maps/:id/vtt/data` | GET | any | Grid resolution and wall/portal/light counts from a Universal VTT file |
 | `/api/maps/:id/thumbnail` | GET | any | WebP thumbnail |
 | `/api/map-folders` | GET | any | List folder tag assignments |
 | `/api/map-folders` | PATCH | gm/admin | Set tags on a folder. Body: `{path, tags}` |
+
+### Map formats and viewing
+
+Map detail responses carry a `media_kind` field naming the viewer to use:
+`image`, `video`, `vtt`, or `archive`.
+
+Raster maps are **not** viewed through `/file`. The viewer requests
+`/page/1`, which renders a downscaled WebP — a large battlemap would otherwise
+have to be transferred in full before anything appeared. `/file` remains the
+download endpoint and serves the untouched original.
+
+Animated battlemaps (`.webm`, `.mp4`) stream from `/file` with a real video MIME
+type and no attachment disposition, so they play in place.
+
+Universal VTT files (`.uvtt`, `.dd2vtt`) are JSON envelopes holding the map as
+base64 plus wall, portal, and light data
+([format reference](https://arkenforge.com/universal-vtt-files/)). The image is
+decoded server-side and served by `/vtt/image`; `/vtt/data` returns the grid and
+feature counts with the image omitted, so the base64 payload never reaches the
+browser.
 
 ---
 
