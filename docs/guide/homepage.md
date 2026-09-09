@@ -36,9 +36,11 @@ Response:
   "maps": 1500,
   "tokens": 800,
   "audio": 250,
+  "models": 640,
   "indexed_books": 320,
   "total_pages": 45000,
-  "total_size_mb": 18240.5
+  "total_size_mb": 18240.5,
+  "library_size_mb": 41890.2
 }
 ```
 
@@ -68,7 +70,7 @@ In your Homepage `services.yaml`, add a service with a `customapi` widget:
         - field: tokens
           label: Tokens
           format: number
-        - field: total_size_mb
+        - field: library_size_mb
           label: Size
           format: float
           scale: 0.001
@@ -88,9 +90,11 @@ to you, for example swap in `game_systems`, `audio`, `indexed_books`, or
 | `maps` | Total maps | `number` |
 | `tokens` | Total tokens | `number` |
 | `audio` | Total audio tracks | `number` |
+| `models` | Total 3D models | `number` |
 | `indexed_books` | Books with a searchable full-text index | `number` |
 | `total_pages` | Sum of all book page counts | `number` |
-| `total_size_mb` | Total library size in MB | `float` (`scale: 0.001`, `suffix: " GB"` for GB) |
+| `total_size_mb` | Size of the books in MB (books only) | `float` (`scale: 0.001`, `suffix: " GB"` for GB) |
+| `library_size_mb` | Size of the whole library in MB — books plus maps, tokens, audio, and models | `float` (`scale: 0.001`, `suffix: " GB"` for GB) |
 
 ## Notes
 

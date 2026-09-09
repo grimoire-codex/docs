@@ -9,7 +9,8 @@ library/
 ├── books/    ← PDF collection (and archive files)
 ├── maps/     ← battle maps and scene images
 ├── tokens/   ← character tokens and portraits
-└── audio/    ← ambient tracks, music, and sound effects
+├── audio/    ← ambient tracks, music, and sound effects
+└── models/   ← 3D models for printing
 ```
 
 ## Books
@@ -313,6 +314,17 @@ audio/
 
 Supported formats: `.mp3`, `.ogg`, `.opus`, `.flac`, `.wav`, `.m4a`, `.aac`. Duration and embedded title/artist/album tags are read on scan. See the [Audio Library](/guide/audio) guide for playback and the global player.
 
+## Models
+
+```
+models/
+└── Creator or Release/    ← shown as a group header in the model browser
+    ├── goblin_presupported.stl
+    └── goblin_unsupported.stl
+```
+
+Supported formats: `.stl`, `.3mf`, `.glb`, `.ply`, `.obj`, `.gltf`, and sliced printer output (`.ctb`, `.lys`, `.cbddlp`, `.pwmx`, `.photon`). `.stl` files get a rendered preview and most mesh formats open in an interactive 3D viewer. Presupported and unsupported copies are detected from the file or folder name. See the [3D Models](/guide/models) guide.
+
 ## Ignoring files
 
 To keep files on disk but out of Grimoire, add a `.grimoireignore` file. It uses the same syntax as `.gitignore` or `.dockerignore`, so anything matched by a rule is skipped by the scanner and never shown in the UI. This is handy when a book ships extra print variants — black-and-white single-page versions, zine-sized layouts — that you want kept alongside the book but hidden from the library.
@@ -342,7 +354,7 @@ ignore/
 *Zine-sized*.pdf
 ```
 
-Patterns support the full gitignore dialect, including `!` to re-include a previously excluded file and `**` for arbitrary-depth matching. Rules apply to every collection — `books/`, `maps/`, `tokens/`, and `audio/`.
+Patterns support the full gitignore dialect, including `!` to re-include a previously excluded file and `**` for arbitrary-depth matching. Rules apply to every collection — `books/`, `maps/`, `tokens/`, `audio/`, and `models/`.
 
 Changes take effect on the next scan. If you add a rule that matches a file Grimoire already indexed, that item is marked missing and hidden on the next rescan; remove the rule and rescan to bring it back.
 

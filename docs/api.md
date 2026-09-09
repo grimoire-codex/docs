@@ -86,9 +86,11 @@ Tokens are returned by `/api/auth/login` and expire after **30 days**.
   "maps": 1500,
   "tokens": 800,
   "audio": 250,
+  "models": 640,
   "indexed_books": 320,
   "total_pages": 45000,
-  "total_size_mb": 18240.5
+  "total_size_mb": 18240.5,
+  "library_size_mb": 41890.2
 }
 ```
 
@@ -116,7 +118,7 @@ Tokens are returned by `/api/auth/login` and expire after **30 days**.
         - field: tokens
           label: Tokens
           format: number
-        - field: total_size_mb
+        - field: library_size_mb
           label: Size
           format: float
           scale: 0.001
@@ -132,9 +134,11 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | `maps` | Total maps | `number` |
 | `tokens` | Total tokens | `number` |
 | `audio` | Total audio tracks | `number` |
+| `models` | Total 3D models | `number` |
 | `indexed_books` | Books with a searchable full-text index | `number` |
 | `total_pages` | Sum of all book page counts | `number` |
-| `total_size_mb` | Total library size in MB | `float`, add `scale: 0.001` + `suffix: " GB"` to show GB |
+| `total_size_mb` | Size of the books in MB (books only) | `float`, add `scale: 0.001` + `suffix: " GB"` to show GB |
+| `library_size_mb` | Size of the whole library in MB — books plus maps, tokens, audio, and models | `float`, add `scale: 0.001` + `suffix: " GB"` to show GB |
 
 ---
 
@@ -219,6 +223,27 @@ browser.
 
 ---
 
+## Models
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/models` | GET | any | Paginated 3D model list. Query: `limit`, `offset` |
+| `/api/models/:id` | GET | any | Model detail, including viewer capability |
+| `/api/models/:id` | PATCH | gm/admin | Update `description`, `tags`, `is_explicit`, `is_supported` |
+| `/api/models/:id/file` | GET | any | Download the model file |
+| `/api/models/:id/thumbnail` | GET | any | WebP thumbnail (rendered preview) |
+| `/api/models/bulk` | POST | gm/admin | Bulk update models |
+| `/api/models/bulk/tags` | POST | gm/admin | Bulk add tags to models |
+| `/api/model-folders` | GET | any | List folder tag assignments |
+| `/api/model-folders` | PATCH | gm/admin | Set tags on a folder. Body: `{path, tags}` |
+| `/api/model-folders/bulk` | POST | gm/admin | Set tags on many folders |
+
+The detail response carries three viewer fields. `viewer_loader` names the client-side loader for the format (`stl`, `gltf`, `3mf`, `ply`) and is empty when none applies. `viewer_available` says whether the browser viewer should load the file on its own. `viewer_oversized` distinguishes the two reasons it might not: when true, the format is supported and only the size cap held it back, so the client can offer to load it anyway behind a warning; when false alongside a false `viewer_available`, no loader exists for the format and a download is the only option.
+
+`is_supported` is a tri-state — `true` presupported, `false` unsupported, `null` when the name says nothing. See the [3D Models](/guide/models) guide.
+
+---
+
 ## Search
 
 | Endpoint | Method | Auth | Description |
@@ -260,6 +285,28 @@ Item types: `book`, `map`, `token`, `system`
 | `/api/bookmarks` | POST | any | Create a bookmark. Body: `{book_id, page_number, label?, notes?, selected_text?}` |
 | `/api/bookmarks/:id` | PATCH | any | Update `label` or `notes` |
 | `/api/bookmarks/:id` | DELETE | any | Delete a bookmark |
+
+---
+
+## Saved audio sets
+
+Named, per-user playlists and soundboards. See [Audio Library](/guide/audio#saved-playlists-and-soundboards).
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/audio-sets` | GET | any | List the user's saved sets (names and counts only). Optional `?kind=` limits to one kind |
+| `/api/audio-sets` | POST | any | Save a set. Body: `{kind, name, entries: [{audio_id, loop?}], layout?: {cols, rows}}` |
+| `/api/audio-sets/:id` | GET | any | Load one set, resolved against the current library |
+| `/api/audio-sets/:id` | PATCH | any | Rename or replace contents. Body: `{name?, entries?, layout?}` |
+| `/api/audio-sets/:id` | DELETE | any | Delete a saved set |
+
+Kinds: `playlist`, `soundboard`. `layout` is the soundboard grid and is `null` for a
+playlist. Re-saving an existing `(kind, name)` overwrites that set rather than creating a
+second one.
+
+Entries store audio ids only, so titles come back resolved against the library as it is
+now. An entry whose track has been removed is omitted and counted in `missing`, letting a
+stale set load with what remains instead of failing.
 
 ---
 
