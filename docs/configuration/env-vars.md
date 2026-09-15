@@ -16,6 +16,7 @@
 | `BASE_URL` | `http://localhost:9481` | Public base URL of this instance. Set to your external URL when running behind a reverse proxy; used for OPDS feed links and OIDC redirect URIs. |
 | `LOG_LEVEL` | `info` | Console log verbosity: `debug`, `info`, `warning`, `error`, `critical`. The in-app Logs tab always captures `debug`-level entries regardless of this setting. |
 | `TZ` | `UTC` | Timezone for all log timestamps (console output and the in-app Logs tab). Use an IANA zone name such as `America/Toronto` or `Europe/Berlin`. Defaults to UTC when unset; an unknown zone name logs a warning and uses UTC. |
+| `UMASK` | _inherited_ | Octal umask applied to everything Grimoire writes: uploaded files, exported sidecars, thumbnails, and the database. `022` gives `rw-r--r--`, `002` group-writable, `000` `rw-rw-rw-` (what Unraid setups usually want). Useful where you cannot set the process umask yourself, such as Kubernetes. `GRIMOIRE_UMASK` is accepted as an alias. Left unset, Grimoire keeps whatever umask it inherited; an unparseable value is ignored with a warning rather than guessed at. |
 
 ## Optional features
 

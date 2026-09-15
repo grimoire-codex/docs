@@ -183,6 +183,9 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | `/api/maps/:id/page/:n` | GET | any | Downscaled WebP render. Query: `width` (default 1600, max 3000) |
 | `/api/maps/:id/vtt/image` | GET | any | Battlemap image decoded out of a `.uvtt`/`.dd2vtt` file |
 | `/api/maps/:id/vtt/data` | GET | any | Grid resolution and wall/portal/light counts from a Universal VTT file |
+| `/api/maps/:id/export.uvtt` | GET | any | Builds a Universal VTT file for a raster map: the image, the grid, and anything authored in the editor |
+| `/api/maps/:id/vtt/authoring` | GET | any | Authored walls, portals, lights and environment, with the resolved grid. `data` is null when nothing is authored |
+| `/api/maps/:id/vtt/authoring` | PUT | gm/admin | Replaces a map's authored geometry in one atomic write. Body: `{data}` — send `{"data": null}` to clear |
 | `/api/maps/:id/thumbnail` | GET | any | WebP thumbnail |
 | `/api/map-folders` | GET | any | List folder tag assignments |
 | `/api/map-folders` | PATCH | gm/admin | Set tags on a folder. Body: `{path, tags}` |
@@ -207,6 +210,20 @@ decoded server-side and served by `/vtt/image`; `/vtt/data` returns the grid and
 feature counts with the image omitted, so the base64 payload never reaches the
 browser.
 
+### Universal VTT authoring
+
+Walls, doors, windows, and lights drawn in the in-app editor are stored against
+the map in Grimoire's database, **not** written to the library. Coordinates are
+in grid units rather than pixels, which is why recalibrating the grid moves the
+geometry with it.
+
+`PUT /vtt/authoring` replaces the whole document atomically — there is no
+per-feature endpoint — and the `.uvtt` is assembled on demand by
+`/export.uvtt`. The original file on disk is never modified, so authoring works
+against a read-only library mount, and editing a map that *is* a `.uvtt` leaves
+that file untouched while the export carries its embedded image alongside the
+new geometry.
+
 ---
 
 ## Tokens
@@ -218,8 +235,22 @@ browser.
 | `/api/tokens/:id` | PATCH | gm/admin | Update `description`, `tags`, `is_explicit` |
 | `/api/tokens/:id/file` | GET | any | Download the token image |
 | `/api/tokens/:id/thumbnail` | GET | any | WebP thumbnail |
-| `/api/token-folders` | GET | any | List folder tag assignments |
+| `/api/token-folders` | GET | any | List folder tag assignments, plus `frame_folders` — paths (any depth under `tokens/`) holding a `.frames-container` marker |
 | `/api/token-folders` | PATCH | gm/admin | Set tags on a folder. Body: `{path, tags}` |
+| `/api/token-frames` | GET | any (not guest) | List user-supplied [token editor](/guide/token-editor#custom-frames) frames |
+| `/api/token-frames/:id/file` | GET | any (not guest) | Serve one frame image |
+
+Frames are the `.png`/`.webp`/`.svg` files in any folder holding a
+`.frames-container` marker file under `tokens/`. The built-in frames ship with
+the frontend and are not listed here. A frame `id` is the base64url-encoded
+library-relative path, and is revalidated on every request — it must resolve
+inside the library, sit in a marked folder reached through non-hidden folders,
+and carry an allowed extension. Anything else is a 404.
+
+Each listed frame also carries `token_id` — the id of the `Token` row indexed
+from the same file, or `null` when the scanner has not reached it yet. There is
+no separate "frame" favourite type: a frame is favourited by starring its token,
+and this is the join the editor uses to group favourited frames.
 
 ---
 

@@ -44,6 +44,8 @@ export default defineConfig({
             { text: 'OCR (Scanned Books)', link: '/guide/ocr' },
             { text: 'Audio Library', link: '/guide/audio' },
             { text: '3D Models', link: '/guide/models' },
+            { text: 'Token Editor', link: '/guide/token-editor' },
+            { text: 'VTT Editor', link: '/guide/vtt-editor' },
             { text: 'Campaigns', link: '/guide/campaigns' },
             { text: 'Community Add-ons', link: '/guide/addons' },
             { text: 'Community Projects', link: '/guide/community-projects' },
