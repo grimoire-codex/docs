@@ -12,6 +12,8 @@ OCR runs quietly in the background, so it never holds up the rest of your librar
 2. Any scanned book with no text layer is queued for OCR and processed afterward, one page at a time.
 3. Progress is saved as each page is read. If the server restarts, or you stop and restart a scan, OCR picks up exactly where it left off instead of starting the book over. Even a very large scanned book will finish, however long it takes.
 
+Each page has a time budget (`OCR_PAGE_TIMEOUT`, default 120 seconds). A page that runs over it is skipped so one bad page can't stall a book forever — the book still finishes, but the skipped pages aren't searchable and it's badged **OCR 14/206** rather than **OCR**. On slow hardware this can affect a lot of pages; see [Pages that get skipped](#pages-that-get-skipped).
+
 You can watch the OCR queue drain under an **OCR** phase in the scan status (**Settings → Maintenance**), which shows a progress bar and the book currently being processed.
 
 Even with a big collection of scanned books, only the OCR queue is affected: the rest of your library stays fully available and searchable while OCR works through the backlog.
@@ -102,3 +104,21 @@ For large scanned collections, two settings control how fast the OCR queue drain
 - **`OCR_DPI`** (default `150`) — how sharp pages are rendered before reading. Lower is faster and lighter; higher can improve results on faint or low-quality scans.
 
 See [Environment Variables → OCR](/configuration/env-vars#ocr) for the full list of OCR settings.
+
+## Pages that get skipped
+
+Each page gets `OCR_PAGE_TIMEOUT` seconds (default `120`) to be read. Pages that run over are skipped, and the book carries on to the next one.
+
+How long a page takes is driven by how **dense and noisy** the scan is far more than by its dimensions: on a low-power CPU, an ordinary page might read in 13 seconds while a cramped, speckled one from the very same book needs four minutes. So on slower hardware this can affect many pages of a single awkward book, while the rest of the library OCRs fine.
+
+A book with skipped pages is still indexed and still searchable — but only for the pages that were read. You can spot it two ways:
+
+- **In the library**, it's badged **OCR 14/206** in amber instead of the plain green **OCR**. The numbers are pages read out of total; hover for a tooltip with the details.
+- **In the logs**, a warning when the book finishes names how many pages were skipped (`docker logs grimoire`).
+
+To recover the missing text:
+
+1. Raise the budget, e.g. `OCR_PAGE_TIMEOUT=600`, and restart. Raising it costs nothing when pages finish quickly — it's a ceiling, not a delay. `0` means no limit at all.
+2. Re-read the book from its actions menu (**⋮** → **Re-OCR…**).
+
+If you'd rather trade accuracy for speed, lowering `OCR_DPI` also brings slow pages under the budget — though on the worst scans, dropping from 150 to 100 DPI often still isn't enough.

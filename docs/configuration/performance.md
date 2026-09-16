@@ -32,6 +32,20 @@ If you have a large collection of scanned books and want the queue to finish fas
 
 A rough guide: a small always-on device (like a Pi) is happiest at the defaults; a typical NAS can handle `OCR_CONCURRENCY=2`; a powerful desktop or server can go higher. It's safe to start low and raise it later — the queue simply continues faster.
 
+### Giving slow pages more time
+
+Each page gets a time budget — `OCR_PAGE_TIMEOUT`, default `120` seconds. A page that runs over it is abandoned and the book moves on, so one pathological page can't stall a book forever.
+
+The catch is that how long a page takes depends on how **dense and noisy** the scan is far more than on its dimensions. On a low-power CPU an ordinary page might read in 13 seconds while a cramped, speckled one from the same book needs four minutes. Those slow pages are skipped, and their text never becomes searchable.
+
+If that's happening, raise the budget (e.g. `OCR_PAGE_TIMEOUT=600`) and re-read the affected books. Raising it costs nothing when pages finish quickly — it's a ceiling, not a delay. Set it to `0` for no limit at all, if you'd rather wait indefinitely than lose text.
+
+### When a book is only partly read
+
+A scanned book that OCR'd cleanly is badged **OCR**. If some of its pages were skipped — they ran over `OCR_PAGE_TIMEOUT`, or reading them failed — it's badged **OCR 14/206** instead: amber, showing how many pages were actually read. Those pages aren't in the search index, so searching that book will quietly miss their text.
+
+To recover them: raise `OCR_PAGE_TIMEOUT` (see above), restart, then re-read the book from its actions menu (**⋮** → **Re-OCR…**). Skipped pages are also logged as warnings when a book finishes, so `docker logs grimoire` will name them.
+
 ## Page rendering
 
 PDFs are rendered page-by-page server-side as WebP images. Rendered pages are cached aggressively with `Cache-Control: max-age=31536000, immutable`, so repeat visits load instantly.
