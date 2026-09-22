@@ -67,7 +67,17 @@ The change takes effect on the next scan of the affected books.
 
 Any category folder can contain named subfolders to group related books. Grimoire detects these automatically and displays them as collapsible groups, with no configuration needed.
 
-Books without a subfolder appear ungrouped at the top of their category, above any groups. Subfolder groups include a download button for the whole group.
+By default, folders are listed ahead of the loose books beside them, like most file managers. The same rule applies at every level, both in a category and inside a folder. Subfolder groups include a download button for the whole group.
+
+To sort folders in among the books instead, open **Settings → Account → Reading & Library → Library Browsing** and set **Folders in book lists** to **Mixed with books**. Each folder then takes its place by name, so a series where one volume has companion material still reads in order:
+
+```
+Aventurisches Jahrbuch 1035 BF
+[folder] Aventurisches Jahrbuch 1036 BF
+Aventurisches Jahrbuch 1037 BF
+```
+
+Folders follow the sort you pick in the toolbar, including its direction. Sorting by year, page count, or size, a folder has no value of its own, so it sits where its first book would. The setting is saved in your browser, like the other Library Browsing preferences.
 
 ### Archive files
 
