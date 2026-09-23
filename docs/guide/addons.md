@@ -36,6 +36,11 @@ be asked to confirm again — even via *Update all*. You approved the old code,
 not the new code. Add-ons without scripts update silently.
 :::
 
+Some updates need a newer version of Grimoire, for example a scraper that fills
+a field Grimoire didn't have before. Those aren't offered until you update
+Grimoire. An update that fails for any reason leaves the version you had
+installed and working.
+
 An add-on you installed by hand isn't in the catalogue, so Grimoire can't tell
 when it changes; update it the same way you installed it.
 
@@ -75,6 +80,40 @@ Each row is labelled:
 Because editions are usually separate entries upstream, searching a bare system
 name often returns several results. Pick the edition you actually own.
 
+## Filling in many at once
+
+To work through a whole shelf, select the systems or books, open **Bulk edit**,
+and click **Fetch metadata** at the bottom of the editor (or press **F**). The
+dialog then stays open and walks through the selection for you:
+
+- It searches for each item's name as soon as that item comes up, using the
+  source you picked last.
+- The top match is already focused, so **Enter** picks it. Use **↑** and **↓**
+  to choose a different match, or **↑** from the first match to go back to the
+  search box and change the search.
+- On the review step, **Enter** presses **Apply & next**. That saves the
+  ticked fields and moves on to the next item.
+- The top of the dialog has the same item bar as the bulk editor. The right
+  arrow skips to the next item without changing anything, and the left arrow
+  goes back one item.
+- The dialog keeps each item's search results, so going back shows the same
+  matches without searching again, with the match you picked marked *picked
+  last time*. If you picked the wrong one of two similar books, choose the
+  right match. The fields the wrong match filled in are ticked for you, so
+  applying replaces them.
+
+When the top match is right, that makes each item two key presses: Enter to
+pick the match, Enter to apply it.
+
+Outside the dialog, **←** and **→** move between items whenever you aren't
+typing in a field.
+
+::: tip Fetched fields are saved straight away
+As in the single editor, **Apply** saves the fetched fields immediately. You
+don't need to press **Save all** afterwards, and closing the bulk editor
+without saving your other edits won't undo them.
+:::
+
 ## When you already know which one
 
 Searching a big catalogue can be fiddly — DriveThruRPG in particular returns a
@@ -109,7 +148,7 @@ to read an ID out of that source's URLs.
 
 | Add-on | Source | Fills in |
 |---|---|---|
-| DriveThruRPG | [drivethrurpg.com](https://www.drivethrurpg.com) | Title, description, authors, artists, publisher, genres, ISBN, year, links |
+| DriveThruRPG | [drivethrurpg.com](https://www.drivethrurpg.com) | Title, description, authors, artists, publisher, genres, ISBN, product code, year, links |
 
 DriveThruRPG's catalogue is enormous and full of third-party supplements, stock
 art, and translations, so searching a well-known title returns a lot of

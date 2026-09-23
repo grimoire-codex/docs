@@ -12,9 +12,13 @@ Grimoire reads [OPF](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm) sidecar 
 | `dc:date` | Year (4-digit year extracted) |
 | `dc:description` | Description (HTML tags stripped) |
 | `dc:subject` | Tags (lowercased) |
+| `dc:identifier` with `opf:scheme="ISBN"` | ISBN (hyphens stripped, check digit validated) |
+| `dc:identifier` with `opf:scheme="PRODUCT_CODE"` or `"SKU"` | [Product code](/guide/library-structure#product-codes) |
 | `guide/reference[@type='cover']` | Cover image (excluded from book list) |
 
-`dc:contributor` and `dc:identifier` are intentionally ignored.
+`dc:contributor` is intentionally ignored, as is any `dc:identifier` without one
+of the schemes above. That keeps Calibre's internal UUID out of the ISBN and
+product code fields.
 
 ## File discovery
 

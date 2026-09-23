@@ -15,6 +15,9 @@ Grimoire indexes every page of every PDF using SQLite FTS5 for fast full-text se
 - Results include a snippet showing the matching text in context
 - Results can be scoped to a single book or game system
 - Maps, tokens, and audio are only returned in global (unscoped) searches
+- A book's [product code](/guide/library-structure#product-codes) is matched as
+  well as its title, so searching `PZO9001` finds that book. To search codes
+  only, use `code:PZO9001` (or `sku:`)
 
 ## Image-only PDFs (OCR)
 

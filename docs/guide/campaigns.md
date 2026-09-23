@@ -59,7 +59,7 @@ Existing session notes are automatically rolled into wiki pages (nested under a 
 
 ### Import & export
 
-GM-only. Export the whole wiki as a Markdown `.zip` (one file per page with YAML frontmatter, an Obsidian-style vault) or a JSON bundle. Import pages from Markdown, a Grimoire JSON bundle, or a **LegendKeeper** export (`.json`, `.lk`, or `.zip`). LegendKeeper HTML and ProseMirror page bodies are converted to Markdown and the page hierarchy is preserved; LegendKeeper-only block types (e.g. secrets, embeds) are dropped. Imports are non-destructive: pages are always added, never overwritten.
+GM-only. Export the whole wiki as a Markdown `.zip` (one file per page with YAML frontmatter, an Obsidian-style vault) or a JSON bundle. Import pages from Markdown, a Grimoire JSON bundle, or a **LegendKeeper** export (`.json`, `.lk`, or `.zip`). **Choose folder** picks a directory of Markdown straight off disk (an Obsidian vault, say) and uploads the whole set at once, with no zipping first; only Markdown is read, and a vault's `.obsidian/` is skipped. Either way the folder structure becomes page nesting: `Places/Cities/Waterdeep.md` imports as a Waterdeep page under Cities under Places. A folder note (`Places/Places.md`) or an `index.md` becomes that folder's page rather than a duplicate, and a page's own `parent:` frontmatter outranks its folder. LegendKeeper HTML and ProseMirror page bodies are converted to Markdown and the page hierarchy is preserved; LegendKeeper-only block types (e.g. secrets, embeds) are dropped. Imports are non-destructive: pages are always added, never overwritten.
 
 ## Resources
 

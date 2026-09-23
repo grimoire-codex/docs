@@ -67,7 +67,17 @@ The change takes effect on the next scan of the affected books.
 
 Any category folder can contain named subfolders to group related books. Grimoire detects these automatically and displays them as collapsible groups, with no configuration needed.
 
-Books without a subfolder appear ungrouped at the top of their category, above any groups. Subfolder groups include a download button for the whole group.
+By default, folders are listed ahead of the loose books beside them, like most file managers. The same rule applies at every level, both in a category and inside a folder. Subfolder groups include a download button for the whole group.
+
+To sort folders in among the books instead, open **Settings → Account → Reading & Library → Library Browsing** and set **Folders in book lists** to **Mixed with books**. Each folder then takes its place by name, so a series where one volume has companion material still reads in order:
+
+```
+Aventurisches Jahrbuch 1035 BF
+[folder] Aventurisches Jahrbuch 1036 BF
+Aventurisches Jahrbuch 1037 BF
+```
+
+Folders follow the sort you pick in the toolbar, including its direction. Sorting by year, page count, size, or product code, a folder has no value of its own, so it sits where its first book would. The setting is saved in your browser, like the other Library Browsing preferences.
 
 ### Archive files
 
@@ -286,6 +296,28 @@ books/
 Only `!`, `$`, and `%` are recognized, and only as a leading prefix — internal
 occurrences (e.g. `D&D $ Extras`) are left untouched. The prefix also stacks with
 `(nsfw)`, so `!!Forbidden Lore (NSFW)` becomes the explicit system "Forbidden Lore".
+
+### Product codes
+
+Most RPG PDFs have no ISBN, and titles repeat across printings and editions. A
+book's **Product code** holds the publisher's own catalogue number (also called
+a SKU or stock number), such as `PZO9001`, `DDAL05-01`, `TSR 9247`, or
+`CAT35000`. It's an optional field in the book editor and the bulk editor.
+
+Once set, a product code is:
+
+- **Searchable.** Type the code into the search box, or use `code:PZO9001`.
+  Spaces and hyphens are ignored, so `TSR9247` finds `TSR 9247`.
+- **Sortable.** Choose **Product code** in the toolbar's sort menu. Codes sort
+  in number order, so `PZO10000` comes after `PZO9001`, and books without a code
+  come last.
+- **Filterable.** The **Product code** filter offers the letter prefixes found in
+  the system (`PZO…`, `TSR…`), plus books with or without a code.
+- **Kept in sidecars.** It's written to and read from [OPF](/guide/opf-metadata)
+  files, and included in JSON and YAML metadata exports.
+
+The [DriveThruRPG add-on](/guide/addons#for-books) also fills in the code
+from the store's **Publisher Stock #**.
 
 ## Maps
 
