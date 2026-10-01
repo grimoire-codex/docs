@@ -59,6 +59,7 @@ export default defineConfig({
           items: [
             { text: 'OpenID Connect', link: '/guide/oidc' },
             { text: 'Authentik Setup', link: '/guide/oidc-authentik' },
+            { text: 'Pocket ID Setup', link: '/guide/oidc-pocketid' },
             { text: 'Guest Access', link: '/guide/guest-access' },
           ],
         },
