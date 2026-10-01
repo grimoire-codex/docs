@@ -38,3 +38,4 @@ Any OIDC setting can be pinned via an environment variable (e.g. `OIDC_ENABLED=t
 ## Provider-specific guides
 
 - [Authentik Setup](/guide/oidc-authentik)
+- [Pocket ID Setup](/guide/oidc-pocketid)
