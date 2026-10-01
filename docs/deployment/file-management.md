@@ -61,6 +61,10 @@ file manager. They appear at the bottom of the menu behind a divider and behave
 exactly as they do in the file manager. Moving from here opens a folder picker
 rather than asking you to drag.
 
+In the library views you can also right-click anywhere on a book to open the
+same menu at the cursor. Hold **Shift** while right-clicking to get the browser's
+own menu (open in new tab, copy link) instead.
+
 These actions are shown only to **admins on a writable library**.
 
 ## Moves keep your metadata

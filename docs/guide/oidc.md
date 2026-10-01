@@ -20,7 +20,7 @@ Open **Settings → Authentication** as an admin:
 |---|---|
 | **Token Issuer** | The exact `iss` value your IdP puts in tokens. Leave blank to auto-detect. Set explicitly if Authentik's application provider issuer differs from the Issuer URL. |
 | **Groups Claim** | Name of the OIDC claim containing group memberships. When set, roles are assigned from groups named `admin`, `gm`, or `player` (case-insensitive). Users without a matching group are denied. |
-| **Advanced Permissions Claim** | Name of the claim containing a permissions object (e.g. `{viewNSFW: bool}`). When set, must be present in every login or access is denied. |
+| **Advanced Permissions Claim** | Name of the claim containing a permissions object, e.g. `{viewNSFW: bool, campaignAccess: bool, apiKeys: bool}`. `apiKeys` lets a non-admin create and use [API keys](/api#api-keys). When set, must be present in every login or access is denied. |
 | **Match Existing Users By** | Link an existing local account to the OIDC subject by `email` or `username` on first login. |
 | **Auto-launch** | Automatically redirect to the IdP when visiting `/login`. Suppress with `?autoLaunch=0`. |
 | **Auto-register** | Automatically create local accounts on first OIDC login. |

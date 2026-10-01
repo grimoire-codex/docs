@@ -78,7 +78,7 @@ After changing languages or adding data files, trigger a rescan (or restart) so 
 `OCR_DPI` sets the render resolution for the whole library, and the default (`150`) is enough for most scans. Occasionally one faint or low-quality book reads better at a higher resolution. Instead of raising the global setting and re-processing everything, you can re-OCR just that one book:
 
 1. Find the scanned book in its game system (it shows an **OCR** or **Image Only** badge).
-2. On the book, open the **actions menu** (the ⋮ button) and choose **Re-OCR…** (it appears only for OCR'd books, for GM/admin users).
+2. On the book, open the **actions menu** (the ⋮ button, or right-click the book) and choose **Re-OCR…** (it appears only for OCR'd books, for GM/admin users).
 3. Optionally enter a DPI (for example `300`) and run it. Leave the DPI blank to re-OCR at the global default.
 
 The book's existing search text is cleared and it's re-read in the background at the resolution you chose — the rest of your library is untouched and stays searchable throughout. Progress shows under the OCR phase in the scan status, and the chosen DPI is remembered for that book so it resumes at the same resolution if the server restarts mid-run.

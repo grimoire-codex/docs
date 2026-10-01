@@ -1,6 +1,6 @@
 # Security
 
-Grimoire ships with two layers of hardening enabled by default: rate limiting on the endpoints that check credentials, and a set of security response headers. Neither requires configuration, but both can be tuned.
+Grimoire ships with two layers of hardening enabled by default: rate limiting on the endpoints that check credentials, and a set of security response headers. Neither requires configuration, but both can be tuned. Cross-origin access for browser-based integrations is off unless you turn it on.
 
 ## Auth rate limiting
 
@@ -9,9 +9,11 @@ The credential-checking endpoints are rate-limited **per client IP** to slow onl
 - `/api/auth/login`
 - `/api/auth/setup`
 - `/api/auth/guest-login`
-- `/api/stats` (API-key-guarded)
+- failed [API key](/api#api-keys) attempts, on any endpoint
 
 The default is **`10/minute`** per IP; exceeding it returns HTTP `429`.
+
+Only *failed* API key attempts count, so a dashboard or script with a working key is never throttled, however often it polls. Once an IP is over the limit, every key it sends is refused until the window passes, even a valid one, so a guess can't be confirmed.
 
 | Variable | Default | Description |
 |---|---|---|
@@ -44,3 +46,14 @@ Every response carries:
 | `Strict-Transport-Security` | Emitted **only when the request is HTTPS**: directly or via `X-Forwarded-Proto: https` from your TLS-terminating proxy, so it is never sent over plain HTTP. |
 
 These are on by default and require no configuration. If you terminate TLS at a reverse proxy, make sure it forwards `X-Forwarded-Proto: https` so HSTS is emitted correctly. See [Reverse Proxy](/deployment/reverse-proxy).
+
+## Cross-origin requests (CORS)
+
+By default Grimoire sends no CORS headers, so browsers block web pages on other sites from reading its API. To let a browser-based integration such as a Foundry VTT module call the API, list its origin in `CORS_ALLOWED_ORIGINS`:
+
+```yaml
+environment:
+  CORS_ALLOWED_ORIGINS: "https://foundry.example.com"
+```
+
+Only the exact origins listed are allowed; a wildcard or a path is ignored with a warning. Grimoire never sends `Access-Control-Allow-Credentials`, so browsers won't send its cookies cross-origin, and another site can't act through a signed-in user's session. Allowed sites authenticate with an [API key](/api#api-keys), limited by that key's permissions. See [API → Calling the API from a browser](/api#calling-the-api-from-a-browser).

@@ -16,7 +16,7 @@ With the server running, the API is self-documented via OpenAPI:
 
 ## Authentication
 
-All endpoints except `/api/auth/status`, `/api/auth/setup`, `/api/auth/login`, and `/api/auth/config` require a JWT.
+All endpoints except `/api/auth/status`, `/api/auth/setup`, `/api/auth/login`, and `/api/auth/config` require a JWT, or, for external integrations, an [API key](#api-keys).
 
 **Header** (preferred):
 ```
@@ -37,6 +37,74 @@ Tokens are returned by `/api/auth/login` and expire after **30 days**.
 | `admin` | Full access including user management and app settings |
 | `gm` | Read + edit metadata, rescan library, manage campaigns |
 | `player` | Read-only access |
+
+### API keys
+
+Scripts and tools, such as a [Homepage widget](/guide/homepage), [grimoire-cli](https://github.com/thomaslazar/grimoire-cli), or a backup script, authenticate with an **API key** instead of a login:
+
+```
+X-API-Key: grim_...
+```
+
+**Keys are personal.** Every key belongs to a user and acts **as that user**: their role, their campaigns, their favorites. The key's permissions can only narrow that; a key can never do more than its owner. If the owner's role changes, their keys follow. Keys are deleted with their owner.
+
+Create keys under **Settings → Account → Security → API Keys**. Admins always can. Anyone else can once an admin ticks **API keys** on their row in **Settings → Users** (off by default), or your [OIDC provider](/guide/oidc) grants the `apiKeys` permission; taking it away stops their existing keys working. Admins can see and revoke everyone's keys under **Settings → App Settings**. Guests never have keys.
+
+Setting `API_KEYS_ENABLED=false` turns API keys off for the whole instance, admins included: keys stop working and the key menus disappear.
+
+Each key has a name, an optional expiry (30, 90 or 365 days, or never), and a level per area:
+
+| Level | Allows |
+|---|---|
+| **No access** (default) | Nothing |
+| **Read** | Viewing: `GET` requests, plus a few read-only `POST`s such as metadata search |
+| **Read and write** | Everything in that area your account can do, including changes |
+
+**All permissions** sets one level for every area at once, including areas added in future versions. You can still raise individual areas above it.
+
+| Permission | Covers |
+|---|---|
+| Statistics | `/api/stats`: library counts and totals |
+| Library | Scan status, start or cancel a rescan, clean up missing items, version and changelog |
+| Books | Books and their metadata, covers, pages and files |
+| Game systems | Game systems, their covers and book folders |
+| Search | Full-text search |
+| Tags | Create, rename, merge and delete tags, and list tagged items |
+| Lookup lists | Genres, system families, parent systems, licenses and dice/materials |
+| Maps | Maps and map folders |
+| Tokens | Tokens, token folders and token frames |
+| Audio | Audio tracks, their covers and folders |
+| 3D models | 3D models and model folders |
+| Campaigns | Your campaigns: members, sessions, wiki, resources and schedule |
+| Downloads | Zip archive downloads |
+| File manager | Browse, upload, move, rename and delete library files |
+| Duplicates | Find, compare, link and merge duplicates |
+| Add-ons | Community metadata add-ons |
+| Maintenance | Metadata sidecar settings and export |
+| Backups | Backups and the backup schedule |
+| Logs | The application logs |
+| Settings | App settings |
+| Users | User accounts, and your own preferences |
+| Personal | Your favorites, bookmarks, saved filters, saved playlists and soundboards, and themes |
+
+You're only offered what your role can use. A player sees game systems as Read at most, since players can't edit them, and never sees admin-only areas like Logs or the file manager.
+
+A few things are **never available to a key**: signing in, managing API keys, and changing a credential or the account itself (password, deleting the account, OPDS and calendar feed tokens).
+
+**Shown once.** The full key appears only when it's created or regenerated. Grimoire stores just a hash of it and afterwards shows only its first few characters. A lost key can't be recovered, only regenerated.
+
+**Errors.** An unknown or expired key gets `401`. A valid key without the permission a request needs gets `403`, with a message naming the permission and level it needs. A key also gets `403` once its owner loses API key access, or while `API_KEYS_ENABLED=false`. Too many wrong keys from one address get `429` (see [Security](/configuration/security)).
+
+### Calling the API from a browser
+
+Server-side tools like Homepage and grimoire-cli need nothing extra. Code that runs in a web page on another site, such as a Foundry VTT module, a browser extension or a dashboard, is blocked by the browser unless you allow that site with `CORS_ALLOWED_ORIGINS`:
+
+```yaml
+environment:
+  CORS_ALLOWED_ORIGINS: "https://foundry.example.com"
+```
+
+List each origin exactly (`scheme://host[:port]`), separated by commas. It's off by default. Allowed sites can send `Authorization`, `Content-Type` and `X-API-Key`, and can read `X-Token-Expired` and error responses. Cookies are never allowed cross-origin, so another site can't use a signed-in user's session: browser integrations authenticate with an API key, which its permissions already limit.
 
 ---
 
@@ -73,7 +141,7 @@ Tokens are returned by `/api/auth/login` and expire after **30 days**.
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/stats` | GET | JWT or `X-API-Key` | Counts, page totals, library size, version |
+| `/api/stats` | GET | JWT, or an API key with Statistics: Read | Counts, page totals, library size |
 | `/api/scan-status` | GET | admin | Current scan state |
 | `/api/rescan` | POST | admin | Trigger a background rescan and reindex |
 | `/api/cancel-scan` | POST | admin | Gracefully stop the running scan |
@@ -94,7 +162,7 @@ Tokens are returned by `/api/auth/login` and expire after **30 days**.
 }
 ```
 
-`/api/stats` is the only endpoint that accepts the `X-API-Key` header, so it's the safe way to surface library counts on an external dashboard. Generate a key as an admin under **Settings → App Settings → Stats API Key** (regenerate or revoke it there at any time). See the [Homepage Widget guide](/guide/homepage) for a full walkthrough.
+To show library counts on an external dashboard, create an [API key](#api-keys) with **Statistics: Read** and nothing else. The counts are the key owner's, so use an admin's key to count the whole library. See the [Homepage Widget guide](/guide/homepage) for a full walkthrough.
 
 **Homepage Custom API widget**: add this to your Homepage `services.yaml` ([Custom API widget docs](https://gethomepage.dev/widgets/services/customapi/)):
 
@@ -125,7 +193,7 @@ Tokens are returned by `/api/auth/login` and expire after **30 days**.
           suffix: " GB"
 ```
 
-Homepage shows up to four fields per row; pick the counts you care about from the fields below. Use a `refreshInterval` of 60s or higher, `/api/stats` is rate limited.
+Homepage shows up to four fields per row; pick the counts you care about from the fields below. A `refreshInterval` of 60s is plenty, since the counts only change when the library does.
 
 | Field | Meaning | Suggested `format` |
 |---|---|---|
@@ -413,8 +481,21 @@ Statuses: `available`, `tentative`, `unavailable`
 | `/api/settings` | GET | Get all application settings |
 | `/api/settings` | PATCH | Update application settings |
 | `/api/settings/ui` | GET | UI visibility flags (any authenticated user) |
-| `/api/settings/api-key/generate` | POST | Generate a stats API key |
-| `/api/settings/api-key` | DELETE | Revoke the stats API key |
+
+---
+
+## API keys
+
+Manage your [API keys](#api-keys). These need a login: a key can never manage keys.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/api-keys` | GET | List your keys (never the key itself). Admins can add `?all=true` for everyone's |
+| `/api/api-keys/permissions` | GET | The permissions your role can grant, with descriptions and the levels each offers |
+| `/api/api-keys` | POST | Create a key. Body: `{name, permissions?, expires_at?}`, where `permissions` is `{permission: "none" \| "read" \| "write"}` and `"*"` means all permissions. Returns `{api_key, key}`: `key` is the full key, returned only here and by regenerate |
+| `/api/api-keys/:id` | PATCH | Rename your key or change its permissions or expiry (`expires_at: null` means never) |
+| `/api/api-keys/:id/regenerate` | POST | Issue a new key with the same name and permissions. The old key stops working immediately |
+| `/api/api-keys/:id` | DELETE | Revoke your key. Admins can revoke anyone's |
 
 ---
 

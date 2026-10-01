@@ -1,23 +1,40 @@
 # Homepage Widget
 
-Grimoire exposes a lightweight, API-key-gated stats endpoint (`/api/stats`) that
-is designed for external dashboards. The most common use is a
+Grimoire exposes a lightweight stats endpoint (`/api/stats`) designed for
+external dashboards, authenticated with an [API key](/api#api-keys). The most common use is a
 [Homepage](https://gethomepage.dev) [Custom API widget](https://gethomepage.dev/widgets/services/customapi/),
 which shows your library counts on your dashboard without logging in.
 
-## 1. Generate a stats API key
+## 1. Create an API key
 
-1. Sign in to Grimoire as an **admin**.
-2. Go to **Settings → App Settings → Stats API Key**.
-3. Click **Generate API Key** and copy the key.
+1. Sign in to Grimoire. Use an **admin** account if the widget should count the whole library: a key counts what its owner can see. Other users need an admin to grant them API keys first (**Settings → Users**).
+2. Go to **Settings → Account**, open **Security**, and under **API Keys** click **Create API key**.
+3. Give it a name, such as `Homepage widget`, and pick an expiration.
+4. Set **Statistics** to **Read**. Leave everything else at **No access**.
+5. Click **Create key**, then **copy the key**.
 
-This key grants read-only access to `/api/stats` only. It does **not** expose
-books, files, users, or build details. You can **Regenerate** (invalidates the
-old key) or **Revoke** it at any time.
+::: warning Copy the key now
+Grimoire shows the full key **once**, right after you create it. Only a hash of it
+is stored, so it can't be shown again. If you lose it, click **Regenerate** on the
+key to issue a new one with the same name and permissions (the old one stops
+working immediately).
+:::
+
+With only **Statistics: Read**, the key can read `/api/stats` and nothing else. It
+can't reach books, files, users, or build details. You can **Edit**, **Regenerate**,
+or **Revoke** it at any time, and the key list shows when it was last used.
 
 ::: tip
-The key is passed in the `X-API-Key` request header. Any client with the key can
-read your library counts, so treat it like a password.
+The key is sent in the `X-API-Key` request header. Anyone with the key can do
+whatever its permissions allow, so treat it like a password.
+:::
+
+::: info Upgrading from an older version?
+The single "Stats API key" from earlier versions is migrated automatically. **Your
+existing key keeps working**, so there's nothing to change in Homepage. It appears in
+the first admin's key list as **Stats API key (migrated)**, with Statistics: Read only. The difference is
+that Grimoire no longer shows the key itself; if you need it again, regenerate it and
+update Homepage.
 :::
 
 ## 2. The stats endpoint
@@ -101,7 +118,13 @@ to you, for example swap in `game_systems`, `audio`, `indexed_books`, or
 - **HTTPS / reverse proxy**: Homepage must be able to reach Grimoire's URL. If
   Grimoire is behind a reverse proxy, use its public URL and make sure the
   `X-API-Key` header is forwarded (most proxies pass all headers by default).
-- **Rate limiting**: `/api/stats` is rate limited. A `refreshInterval` of
-  `60000` (60s) or higher is plenty for a dashboard and stays well within limits.
-- **401 Unauthorized**: the key is wrong, was revoked/regenerated, or the
-  header name isn't exactly `X-API-Key`.
+- **Refresh interval**: requests with a working key are never rate limited, but
+  a `refreshInterval` of `60000` (60s) is plenty, since the counts only change
+  when the library does.
+- **401 Unauthorized**: the key is wrong, has expired, was revoked or
+  regenerated, or the header name isn't exactly `X-API-Key`.
+- **403 Forbidden**: the key is valid but lacks **Statistics: Read** (edit it
+  under **Settings → Account → API Keys**), its owner no longer has API key
+  access, or API keys are turned off for the instance (`API_KEYS_ENABLED=false`).
+- **429 Too Many Requests**: too many *wrong* keys were sent from Homepage's
+  address. Fix the key and wait a minute.

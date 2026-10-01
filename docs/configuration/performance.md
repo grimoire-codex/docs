@@ -6,6 +6,20 @@ On first startup Grimoire scans the library and indexes every PDF page for full-
 
 Use the **Rescan** button in the sidebar to pick up newly added files, or configure a scheduled rescan in **Settings → Maintenance**. For large libraries you can also rescan a single corner: every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.
 
+### Very large images
+
+Very large images, usually high-resolution scanned battlemaps, can be indexed without a thumbnail. The image library Grimoire uses (Pillow) refuses to open anything over about 179 megapixels, treating it as a possible decompression bomb, which is a limit sized for untrusted web uploads. A 60x60in map scanned at 300 DPI is 324 megapixels. When this happens the container log says so:
+
+```
+Thumbnail skipped for /app/library/…/map.jpg: Image size (324000000 pixels) exceeds limit of 178956970 pixels…
+This is the decompression-bomb guard, not a damaged file.
+Raise MAX_IMAGE_PIXELS (currently Pillow's default) to index images this large.
+```
+
+To thumbnail them, set `MAX_IMAGE_PIXELS` and restart. Pillow warns above this many pixels and refuses above twice it, so `MAX_IMAGE_PIXELS=400000000` covers images up to 800 megapixels without log warnings below 400. Then rescan the folder the maps are in to backfill their thumbnails.
+
+Raising it costs less than it sounds for JPEGs, which are decoded at a reduced scale for the thumbnail: a 324-megapixel map takes about 2 seconds and 42 MB. PNGs get no such shortcut and are decoded in full, and uploaded files go through the same path, so only raise it if you trust where your images come from. Leave it unset and nothing changes.
+
 ## OCR
 
 Some PDFs contain only scanned page images with no embedded text layer (common with older, scanned books). These can't be full-text searched from their text layer alone and show an **Image Only** badge.

@@ -44,6 +44,7 @@ Backups cover the database and the files you uploaded through Grimoire, but **no
 | Variable | Description |
 |---|---|
 | `DISABLE_FOLDER_CATEGORY_INFERENCE` | `true` or `false`. When set, pins folder-name category inference on or off, overriding the in-app toggle (which is shown read-only). When `true`, books are not auto-assigned a category from their folder names and fall back to `uncategorized`. Leave unset to control it from **Settings → Maintenance**. To disable inference for a single game system only, drop an empty `.no-auto-category` file at that system's folder root. |
+| `MAX_IMAGE_PIXELS` | Unset by default. Raises the size limit above which an image is refused as a possible decompression bomb. Pillow warns above this many pixels and refuses above twice it. Its own default (warn at ~89 MP, refuse at ~179 MP) is sized for untrusted uploads, so a very large scanned battlemap - 60x60in at 300 DPI is 324 MP - is indexed with no thumbnail. Set it only if you have images that large and trust where they came from, e.g. `400000000`. Values below `1000000` are raised to it; `0`, a negative number, or anything unparseable counts as unset. See [Performance → Very large images](/configuration/performance#very-large-images). |
 
 ## OCR
 
@@ -62,6 +63,8 @@ Image-only PDFs (scanned books with no embedded text) can be run through the bun
 | Variable | Description |
 |---|---|
 | `ALLOW_PASSWORD_AUTHENTICATION` | `true` or `false`. Pins password authentication on or off, overriding the in-app toggle (which is shown read-only). First-run admin setup always requires a password regardless of this value. |
+| `API_KEYS_ENABLED` | Set to `false` to turn [API keys](/api#api-keys) off for the whole instance, admins included: existing keys stop working and the key menus disappear. On by default. Which users may hold keys is set per user in Settings → Users. |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated origins, e.g. `https://foundry.example.com`, whose web pages may call the API from the browser: a Foundry VTT module, a browser extension, a dashboard. Unset by default, which sends no CORS headers. Entries must be exact origins (`scheme://host[:port]`); a wildcard or a path is ignored with a warning. Server-side tools like Homepage don't need it. See [API → Calling the API from a browser](/api#calling-the-api-from-a-browser). |
 | `GUEST_ACCESS_ENABLED` | `true` or `false`. Pins guest invite codes on or off, overriding the in-app toggle (shown read-only). Off by default. See [Guest Access](/guide/guest-access). |
 
 ## Security
@@ -70,7 +73,7 @@ Per-IP rate limiting on the credential-checking endpoints, plus security headers
 
 | Variable | Default | Description |
 |---|---|---|
-| `AUTH_RATE_LIMIT` | `10/minute` | Per-IP throttle on `/api/auth/login`, `/api/auth/setup`, `/api/auth/guest-login`, and `/api/stats`. Exceeding it returns `429`. Uses a [`limits`](https://limits.readthedocs.io/en/stable/quickstart.html#rate-limit-string-notation) string like `20/minute` or `100/hour`. |
+| `AUTH_RATE_LIMIT` | `10/minute` | Per-IP throttle on `/api/auth/login`, `/api/auth/setup`, `/api/auth/guest-login`, and on failed API key attempts. Exceeding it returns `429`. Uses a [`limits`](https://limits.readthedocs.io/en/stable/quickstart.html#rate-limit-string-notation) string like `20/minute` or `100/hour`. |
 | `RATE_LIMIT_ENABLED` | `true` | Set to `false` to disable auth rate limiting entirely. |
 | `TRUST_FORWARDED_FOR` | `true` | When `true`, the limiter keys on the left-most `X-Forwarded-For` address so each client gets its own bucket behind a reverse proxy. Set to `false` only if Grimoire is exposed directly, so a spoofed header can't sidestep the limit. |
 
