@@ -66,6 +66,17 @@ PDFs are rendered page-by-page server-side as WebP images. Rendered pages are ca
 
 Rendering happens on first access for each page. For large books, the first open may take a moment while the first few pages render.
 
+## Large libraries
+
+The galleries (Maps, Tokens, Audio, Models), a game system's shelf, and the Tags page are built for libraries of a few hundred thousand files.
+
+- **Only what you look at is loaded.** Searching, sorting, filtering, and folder grouping happen on the server. The browser fetches one folder at a time as you open it, and a page at a time as you scroll - there is no "page 2", the list just keeps going. Opening a gallery of 180,000 tokens costs a few small requests, not the whole library.
+- **Folder counts are exact before anything opens.** Each folder shows how many items it holds under the current filters, so you can see where things are without expanding everything.
+- **Folders start collapsed**, including ones a new search or filter brings into view - expand just the ones you need.
+- **Search understands field prefixes.** A gallery's search box, and a system page's, accept the same `field:value` syntax as the main [search](/guide/search#narrowing-a-gallery-or-system) - `tag:dungeon` or `title:goblin` in a gallery, `author:gygax`, `year:1985` or `code:PZO` on a system's page.
+
+The database work behind these views is indexed: on a test library of 187,000 tokens, 18,000 maps, and one system holding 30,000 books, every browse request answers in well under half a second. The first startup after upgrading builds those indexes, which takes a few seconds per hundred thousand files.
+
 ## Valkey / Redis page cache
 
 By default, rendered pages are cached to disk under `DATA_PATH/page_cache/`. For large libraries or multi-user setups, providing a `VALKEY_URL` moves the cache to memory for faster repeat loads.

@@ -8,7 +8,7 @@ Grimoire has a built-in campaign tracker with two modes.
 Created by GMs or admins. Supports player invitations, a banner image, character art and character sheets per member, resource linking with per-resource visibility, a markdown wiki for notes, and scheduling.
 
 ### Personal Campaigns
-Private to a single user. No sharing.
+Private to a single user. No sharing. A player can keep one to track their own notes for a game someone else runs, and put their [character](./characters#characters-and-campaigns) in it.
 
 ## Creating a campaign
 
@@ -27,6 +27,8 @@ A player can also **create a sheet from a template** (duplicating a form-fillabl
 Sheets can be downloaded at any time, and re-uploading prompts a warning (with an option to download the current version first) before the previous one is replaced.
 
 Users can also set a **display name** in Account Settings that appears in place of their username across the app.
+
+For a live sheet that calculates its own values, use the [character builder](./characters) instead: put a character in the campaign and everyone at the table can read it. A player may keep several characters in one campaign, marking a fallen one **Dead** or **Retired** rather than deleting it.
 
 ## Per-user campaign access
 

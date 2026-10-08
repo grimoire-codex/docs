@@ -38,15 +38,17 @@ Folder name matching is **case-insensitive** and treats hyphens, underscores, an
 
 | Category | Recognized folder names |
 |---|---|
-| Core Rulebooks | `core`, `rulebooks`, `rules` |
+| Core Rulebooks | `core`, `rulebooks`, `rules`, `players`, `gms`, `game masters` |
 | Starter Set | `starter-set`, `starter kit`, `beginner box`, `boxed set`, `essentials` |
-| Supplements | `supplements`, `sourcebooks`, `expansions` |
+| Supplements | `supplements`, `sourcebooks`, `sources`, `expansions` |
 | Adventures | `adventures`, `modules`, `campaigns` |
-| Character Sheets | `character-sheets`, `character sheets`, `charsheets` |
+| Character Sheets | `character-sheets`, `character sheets`, `charsheets`, `sheets` |
 | Handouts | `handouts`, `reference`, `screen` |
-| Homebrew | `homebrew`, `custom`, `house-rules` |
+| Homebrew | `homebrew`, `custom`, `house-rules`, `unofficial` |
 
 ::: tip
+`players`, `gms`, `game masters`, `sheets` and `sources` count only when they are the whole folder name. In a longer name the more specific word decides: `Player Handouts` and `GM Screens` are handouts, `Cheat Sheets` stays with handouts, and `Source Adventures` are adventures.
+
 Files placed directly in a system folder (not in a subfolder) default to the **Core Rulebooks** category.
 
 Any unrecognized subfolder name becomes its own category, slugified from the folder name, so `Bestiary` becomes the `bestiary` category.
@@ -62,6 +64,14 @@ There are two ways to disable it, applied in this order of precedence:
 2. **Per game system** — place an empty file named `.no-auto-category` at a system's folder root (e.g. `books/My System/.no-auto-category`) to disable inference for just that system while leaving the rest of the library on the default behavior.
 
 The change takes effect on the next scan of the affected books.
+
+### Long systems start collapsed
+
+When a game system has more than 25 books, its category sections start collapsed, so the page opens on an overview of the categories rather than one long list. Core Rulebooks is the exception: if it holds five books or fewer, it stays open. A system with only one category always starts open.
+
+Filtering the list down to 25 books or fewer opens the categories again. Once you open or close a category yourself, Grimoire keeps your choice for the rest of the session instead.
+
+The same rule applies to other grouped lists that hold more than 25 items: favorites, the tags list and a tag's items, search results, campaign resources, the campaign notes page tree, and a book's table of contents.
 
 ### Subfolder groups
 
@@ -357,6 +367,30 @@ models/
 
 Supported formats: `.stl`, `.3mf`, `.glb`, `.ply`, `.obj`, `.gltf`, and sliced printer output (`.ctb`, `.lys`, `.cbddlp`, `.pwmx`, `.photon`). `.stl` files get a rendered preview and most mesh formats open in an interactive 3D viewer. Presupported and unsupported copies are detected from the file or folder name. See the [3D Models](/guide/models) guide.
 
+## Recently added items
+
+Grimoire records when each book, map, token, audio track, and 3D model first
+appears in the library. Anything added in the last 7 days shows a small sparkle
+icon beside its name; hover it and it reads **New**.
+
+- **Sort by date added.** Choose **Date added** in the toolbar's sort menu on a
+  system page or in any gallery. It starts newest first; flip the arrow for
+  oldest first. On a system page the sort applies inside every category.
+- **Show only new items.** Open **Filters** and tick **Recently added (last 7
+  days)** to hide everything without the badge. Save it as a filter preset to
+  make it a one-click "what's new" view.
+
+The first scan of a new install brings in your whole library at once, so those
+items get no date - otherwise everything would show as new for a week. Only
+what you add after that first full scan is dated. If you upgraded from an
+earlier version, existing items take the date Grimoire first scanned them.
+
+Moving or renaming a file, or replacing its contents, keeps its original date.
+An item with no date gets no badge and sorts last.
+
+To notify another service about new books, poll the
+[books API](/api#books) with `sort=added_at` and `added_since`.
+
 ## Ignoring files
 
 To keep files on disk but out of Grimoire, add a `.grimoireignore` file. It uses the same syntax as `.gitignore` or `.dockerignore`, so anything matched by a rule is skipped by the scanner and never shown in the UI. This is handy when a book ships extra print variants — black-and-white single-page versions, zine-sized layouts — that you want kept alongside the book but hidden from the library.
@@ -392,7 +426,7 @@ Changes take effect on the next scan. If you add a rule that matches a file Grim
 
 ## Rescanning
 
-After adding, removing, or reorganizing files, click **Rescan** in the sidebar or go to **Settings → Maintenance → Rescan Library** to pick up the changes. You can also configure a scheduled rescan there.
+After adding, removing, or reorganizing files, click **Rescan** at the top of any Settings page (admins) or go to **Settings → Maintenance → Rescan Library** to pick up the changes. You can also configure a scheduled rescan there.
 
 ::: tip Scoped rescan
 For large libraries you don't have to rescan everything. Every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.

@@ -1,0 +1,201 @@
+# Characters
+
+Grimoire has a built-in **character builder**. You install a sheet for your
+game, build characters on it, and the sheet does the arithmetic as you fill it
+in — modifiers, saves, totals, spell slots. **Characters** sits under Campaigns
+in the sidebar, with each character shown as a card with its art.
+
+The builder is **schema-driven**: a sheet is a document describing its fields,
+the values worked out from them, and how it is drawn. There is no game-specific
+code in Grimoire, so the same engine draws D&D, Draw Steel, Pathfinder, Cairn,
+or a system you invent this evening.
+
+::: tip Not the same as campaign PDF sheets
+A campaign member can still upload a PDF or image character sheet to a campaign
+(see [Campaigns](./campaigns#characters-art-and-sheets)). The character builder
+is separate: its sheets are live, calculate their own values, and live under
+**Characters**.
+:::
+
+## Sheets in the catalogue
+
+The [community add-ons](https://github.com/grimoire-codex/community-add-ons)
+repository carries ten sheets, each under the licence its game is published
+with:
+
+| System | Layout | Content pack |
+| --- | --- | --- |
+| Dungeons & Dragons 5e (2024) | Custom | D&D 5e SRD 5.2 |
+| Draw Steel | Custom, after the printed sheet | Draw Steel: Heroes |
+| Pathfinder 2e | Custom | Pathfinder Player Core |
+| Pathfinder 1e | Custom, after the 2009 sheet | |
+| Call of Cthulhu 7th Edition | Custom | |
+| Traveller (Mongoose 2nd Edition) | Custom | |
+| Cosmere RPG | Custom | |
+| Dungeon Crawler Carl | Custom, after the printed sheet | |
+| Cairn | Default | |
+| Basic Fantasy RPG | Default | |
+
+A *custom* sheet follows its published original's content and order. A
+*default* sheet is drawn in plain sections — perfectly usable, and all a
+rules-light game needs. Each works out the arithmetic its system actually uses:
+D&D scales proficiency into saves and passive Perception, Pathfinder adds your
+level only once you are trained, Traveller gives every skill a DM against each
+characteristic.
+
+## Installing a sheet
+
+**Characters → Manage sheets** opens on **Sheets**:
+
+- **Browse sheets** lists the community catalogue, with each sheet's licence and
+  credit shown before you install it.
+- **Paste a sheet** takes one you wrote or were sent: the sheet itself (JSON or
+  YAML), and optionally its layout HTML and stylesheet.
+
+Sheets are **per user**, like themes — installing one changes nothing for anyone
+else, so no admin approval is involved, and guests can install them too. A
+downloaded sheet is checked against the catalogue's digest and validated before
+it is stored, and nothing in a sheet runs. Uninstalling a sheet keeps the
+characters built on it: they open showing their stored values until you
+install it again.
+
+## Building a character
+
+**New character** asks for a name, the sheet, and optionally a campaign. Then
+fill in the sheet. Edits save as you type.
+
+- **Derived values recalculate live.** A modifier updates the instant its score
+  changes.
+- **Warnings** appear when the sheet notices something — more spells prepared
+  than your maximum, say. They never block saving.
+- **Art** sits in the sheet's header: click the thumbnail to add or change it.
+- **Picked entries open.** Click a feat or a spell to read the whole entry.
+- **Choices fill in the rest.** On the D&D 5e sheet, picking a class sets your
+  saves, hit dice and spellcasting ability, then asks for its skill choices;
+  picking a background adds its skills and origin feat. Swap the pick and only
+  what it added comes off again.
+
+### You can set any value
+
+Everything a sheet works out is a suggestion — the table is the authority, not
+the formula:
+
+- A value filled in from your choices is marked **auto**. Type over it and it is
+  yours; the reset button beside it hands it back.
+- A calculated value — Armour Class, a save DC — can be clicked and set, and
+  everything built on it follows.
+- **All values**, in the sheet's header, lists everything the character stores
+  and calculates, whatever the sheet's layout shows.
+
+None of this needs content installed. With no class or species loaded — a
+homebrew class you are playing from your own notes, say — every one of these is
+an ordinary field you fill in.
+
+### What the builder does not do
+
+Grimoire keeps your character's **record** and does its **arithmetic**. It does
+not run a game's character creation *procedure* — careers, lifepaths, rolling on
+random tables. Those belong at the table with the book; the sheet holds what
+they produced.
+
+## Characters and campaigns
+
+Put a character in a campaign and everyone at that table can **read** its sheet
+— so a GM can see what the party is playing. Only the player who made it can
+edit it.
+
+You can put a character in any campaign you are at the table for:
+
+- **One you run** — a GM campaign, or a [personal campaign](./campaigns#personal-campaigns)
+  you keep for your own notes as a player.
+- **One you have joined.** A pending invitation does not count until you accept
+  it.
+
+Choose the campaign when you create the character, or change it any time from
+the dropdown under the character's name in the sheet's header. **No campaign**
+makes the sheet private again.
+
+### More than one character
+
+Characters die, retire, and get replaced, so a player can have any number of
+characters in the same campaign. Instead of deleting the old one, set its
+**status** — the second dropdown in the sheet's header — to **Retired** or
+**Dead**. It stays readable, greyed out on the Characters page and listed after
+the characters still being played.
+
+## Content packs and rulesets
+
+Fields like a class or a spell list open a **catalog** you can search and
+filter. A character **references** an entry rather than copying it, so an
+erratum reaches every character that chose it. Anything the catalog lacks can be
+added by hand with **Add custom**.
+
+The catalog is filled by two things, both managed under **Characters → Manage
+sheets → Content**:
+
+- **Content packs** are a system's published content — the SRD's spells,
+  classes and feats. They are server-wide, so **an admin installs them**, from
+  **Browse content packs**. Anyone can browse, so a GM can see what a pack offers
+  before asking for it. Each file is checked against the catalogue's digest.
+- **Rulesets** are editable sets of content. A ruleset **belonging to a
+  campaign** is read by everyone at that table and edited by the GM who runs it;
+  a ruleset **for the server** is available in every game and only an admin can
+  create one. Two games in the same system can therefore allow different
+  content. A **personal** ruleset, labelled *Only you*, is yours alone — nobody
+  else can read it, admins included.
+
+Getting content into a ruleset:
+
+- **Import a content pack** in a click once it is installed. Its licence and
+  credit are copied along with it.
+- **Fork an entry** to change it. Pack content is read-only, so editing a spell
+  means taking a copy, which remembers where it came from.
+- **Write one by hand**, or **Import a document** someone exported (JSON or
+  YAML). An import keeps what you already have unless you choose to replace it.
+
+Deleting an entry never damages a character: the sheet shows it as missing, and
+it reads correctly again if the entry comes back.
+
+::: tip Installing packs by hand
+An admin can also copy a pack's directory into `character-content/` inside the
+data directory, then use **Settings → Add-ons → Character content packs →
+Reload from disk**.
+:::
+
+## Sharing a character
+
+**Export** in the sheet's header writes a self-contained file: every entry the
+character uses is embedded, and the sheet definition travels with it, so it
+opens on a server that has neither the pack nor the ruleset. Import it from
+**Characters → Import a character**. The receiving server prefers its own copy of
+each entry, so a shared character picks up local corrections. Anything the file
+carries that the server lacks goes into a new **personal** ruleset for the
+person importing it, so it is never shared with anyone else — though a party the
+character joins still sees the sheet whole.
+
+## Writing your own sheets and content packs
+
+A sheet you write works exactly like a catalogue one — paste it under **Manage
+sheets → Paste a sheet**. To share it with everyone, contribute it to the
+community repository:
+
+- [Adding a character sheet](https://github.com/grimoire-codex/community-add-ons/blob/main/character-sheets/README.md)
+  — a walkthrough from the first field to the pull request.
+- [Character sheet reference](https://github.com/grimoire-codex/community-add-ons/blob/main/docs/character-sheets.md)
+  — every field type, formula function, layout directive, HTML tag and CSS
+  property a sheet can use.
+- [Adding a content pack](https://github.com/grimoire-codex/community-add-ons/blob/main/content-packs/README.md)
+  — the spells, classes and feats a sheet draws from, and the licensing they
+  need.
+
+Content for one table rather than everyone belongs in a ruleset instead, which
+needs no pull request.
+
+## Using a different catalogue (admin)
+
+The sheet and content-pack catalogues follow the add-on index set under
+**Settings → Add-ons**. That setting takes a **comma-separated list**, so you
+can offer several catalogues at once — the official one alongside a friend's
+fork. Sheets from every source appear together, labelled with where they came
+from, and a source that cannot be reached is called out rather than quietly
+left out.

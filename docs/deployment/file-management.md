@@ -18,7 +18,8 @@ allows and what changes if you prefer a read-only library.
 
 ## The file manager
 
-Open it at **Settings → Maintenance → Open file manager**. It is a folder tree
+Open it from the **File manager** button at the top of any Settings page, or at
+**Settings → Maintenance → Open file manager**. It is a folder tree
 built for bulk reorganization rather than a plain file listing.
 
 - **Expand folders in place** so a file and its destination are visible at once.
@@ -81,6 +82,24 @@ if your core books live in a folder called *Rulebooks*, a book re-categorised as
 *core* joins them rather than a second *Core* folder appearing beside it.
 
 Changes made in the file manager apply immediately — no rescan needed.
+
+## Replacing a book's file
+
+To swap in a corrected file for a book you already have (a cleaner scan, a
+re-OCRed text layer, an errata printing) without losing its tags, metadata edits,
+bookmarks, or favorites, upload it over the old one with
+`POST /api/files/upload` and `on_conflict=replace`. The file must have the same
+name and folder as the book it replaces. See the
+[API reference](https://github.com/hunter-read/grimoire/blob/main/docs/api.md)
+for the details.
+
+The book keeps its record. Everything Grimoire read from the old file is read
+again from the new one: page count, cover, and search text. An image-only PDF
+goes back into the OCR queue. Your own metadata is left alone. Bookmarks keep
+their page numbers, so check them if the new file's pages moved.
+
+A replace is refused while a scan or OCR run is going. Wait for it to finish, or
+stop it, and try again.
 
 ## Managing files outside Grimoire
 

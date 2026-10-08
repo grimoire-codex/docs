@@ -215,7 +215,10 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
 | `/api/systems` | GET | any | List all systems with book counts |
-| `/api/systems/:id` | GET | any | System detail + full book list |
+| `/api/systems/:id` | GET | any | System detail + full book list. `include_books=false` returns the summary alone |
+| `/api/systems/:id/books` | GET | any (not guest) | One page of the system's books matching the shelf filters. Query: filters, `category` + `folder` (one folder of the grouped shelf), `sort`, `order`, `limit`, `offset` |
+| `/api/systems/:id/book-groups` | GET | any (not guest) | Every category and subfolder holding matching books, with counts |
+| `/api/systems/:id/book-facets` | GET | any (not guest) | The tags, genres, product-code prefixes and categories on the shelf |
 | `/api/systems/:id` | PATCH | gm/admin | Update metadata |
 
 **PATCH fields:** `name`, `slug`, `description`, `publishers`, `character_builder_url`, `cover_image`, `cover_book_id`, `tags`, `genre`, `is_explicit`
@@ -226,7 +229,7 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/books` | GET | any | Paginated book list. Query: `system_id`, `category`, `limit` (max 500), `offset` |
+| `/api/books` | GET | any | Paginated book list. Query: `system_id`, `category`, `limit` (max 500), `offset`, `sort` (`title` or `added_at`), `order` (`asc`/`desc`; `added_at` defaults to newest first), `added_since` (ISO-8601, UTC if no offset). Each book carries `added_at` - when it first appeared in the library, or `null` for items from the first import of a new install (and older rows with no date). Poll `sort=added_at&added_since=<last poll>` to find new additions. |
 | `/api/books/:id` | GET | any | Book detail |
 | `/api/books/:id` | PATCH | gm/admin | Update book metadata |
 | `/api/books/:id/reindex` | POST | gm/admin | Re-run OCR on a scanned book. Optional query `ocr_dpi` (72–600) re-reads it at a higher resolution than the global `OCR_DPI`. Clears the search index and re-queues the book (OCR runs in the background). 400 for books with an embedded text layer. |
@@ -244,7 +247,8 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/maps` | GET | any | Paginated map list. Query: `limit`, `offset`, `tag` |
+| `/api/maps` | GET | any | Paginated map list. Query: `limit`, `offset`, `map_type`, and the [browse parameters](#browsing-large-collections) |
+| `/api/maps/groups` | GET | any (not guest) | Folders holding matching maps, with counts |
 | `/api/maps/:id` | GET | any | Map detail |
 | `/api/maps/:id` | PATCH | gm/admin | Update `description`, `tags`, `map_type`, `grid_size` |
 | `/api/maps/:id/file` | GET | any | Download/stream the original map file |
@@ -298,7 +302,8 @@ new geometry.
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/tokens` | GET | any | Paginated token list. Query: `limit`, `offset`, `tag` |
+| `/api/tokens` | GET | any | Paginated token list. Query: `limit`, `offset`, and the [browse parameters](#browsing-large-collections) |
+| `/api/tokens/groups` | GET | any (not guest) | Folders holding matching tokens, with counts |
 | `/api/tokens/:id` | GET | any | Token detail |
 | `/api/tokens/:id` | PATCH | gm/admin | Update `description`, `tags`, `is_explicit` |
 | `/api/tokens/:id/file` | GET | any | Download the token image |
@@ -326,7 +331,8 @@ and this is the join the editor uses to group favourited frames.
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/models` | GET | any | Paginated 3D model list. Query: `limit`, `offset` |
+| `/api/models` | GET | any | Paginated 3D model list. Query: `limit`, `offset`, and the [browse parameters](#browsing-large-collections) |
+| `/api/models/groups` | GET | any (not guest) | Folders holding matching models, with counts |
 | `/api/models/:id` | GET | any | Model detail, including viewer capability |
 | `/api/models/:id` | PATCH | gm/admin | Update `description`, `tags`, `is_explicit`, `is_supported` |
 | `/api/models/:id/file` | GET | any | Download the model file |
@@ -340,6 +346,23 @@ and this is the join the editor uses to group favourited frames.
 The detail response carries three viewer fields. `viewer_loader` names the client-side loader for the format (`stl`, `gltf`, `3mf`, `ply`) and is empty when none applies. `viewer_available` says whether the browser viewer should load the file on its own. `viewer_oversized` distinguishes the two reasons it might not: when true, the format is supported and only the size cap held it back, so the client can offer to load it anyway behind a warning; when false alongside a false `viewer_available`, no loader exists for the format and a download is the only option.
 
 `is_supported` is a tri-state — `true` presupported, `false` unsupported, `null` when the name says nothing. See the [3D Models](/guide/models) guide.
+
+---
+
+## Browsing large collections
+
+The gallery list routes (`/api/maps`, `/api/tokens`, `/api/audio`, `/api/models`) and their `/groups` companions filter, sort and group on the server, so a client can browse a library of any size a page at a time. They share these parameters:
+
+| Parameter | Meaning |
+|---|---|
+| `q` | Search text over the name, folder path and tags; accepts `field:` prefixes (`tag:`, `title:`, `artist:`, `album:`) |
+| `tags` | Tag filter as JSON: `[{"mode": "include"\|"exclude", "tags": [...]}]` groups (OR within a group, AND between groups), or a flat list. Folder tags count for everything beneath the folder. `__grim:none__` / `__grim:any__` match untagged / tagged items |
+| `favorites` | `true` for the caller's favourites only |
+| `added_since` | Items added at or after this ISO time |
+| `folder` | Only items directly in this folder (`""` for the collection root) |
+| `sort`, `order` | `path` (default), `name` (natural order), `size`, `added_at`; audio also `title`, `duration`. `asc` or `desc` |
+
+`/groups` returns `{total, groups: [{path, count}]}` - every folder holding matching items. A tag's items are paged the same way: `/api/tags/:internal/items` returns per-type counts, the tagged folders with counts, and a page of directly-tagged items (`resource_type`, `limit`, `offset`), and `/api/tags/:internal/folder-items` pages through one tagged folder.
 
 ---
 
@@ -471,6 +494,70 @@ stale set load with what remains instead of failing.
 | `/api/campaigns/:id/availability/:date/cancel` | PUT | owner or admin | Toggle session cancellation |
 
 Statuses: `available`, `tentative`, `unavailable`
+
+---
+
+## Characters
+
+Sheets (schemas) and characters are stored **per user**, so any signed-in user — guests included — may install a sheet. See [Characters](/guide/characters) for how the builder works.
+
+### Sheets
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/characters/schemas` | GET | any | Installed sheets, each with a `character_count` |
+| `/api/characters/schemas` | POST | any | Install a pasted sheet. Body: `{text}` (JSON or YAML) or `{document}`, plus optional `layout` and `styles`. 400 names the problem if it does not validate |
+| `/api/characters/schemas/browse` | GET | any | The community sheet catalogue, each marked `installed` |
+| `/api/characters/schemas/install/:sheet_id` | POST | any | Install a sheet from the catalogue |
+| `/api/characters/schemas/:schema_id` | GET | any | One sheet with its validated `document` |
+| `/api/characters/schemas/:schema_id` | DELETE | any | Uninstall a sheet. Characters built on it are kept |
+
+### Characters
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/characters` | GET | any | Your characters plus your parties', newest first. `?schema_ref=` and `?campaign_id=` filter |
+| `/api/characters` | POST | any | Create one. Body: `{schema_ref, name?, data?, campaign_id?}` |
+| `/api/characters/:id` | GET | owner or party | One character with `data` and freshly worked-out `computed` |
+| `/api/characters/:id` | PUT | owner | Update `name`, `data` (a partial patch), `unset`, `campaign_id` (`""` clears it) and/or `status` |
+| `/api/characters/:id` | DELETE | owner | Delete a character |
+| `/api/characters/:id/export` | GET | owner or party | A self-contained file, with the sheet and every referenced entry embedded |
+| `/api/characters/import` | POST | any | Rebuild a character from an exported file. Body: `{payload, import_entries?}` |
+| `/api/characters/:id/portrait` | GET / POST / DELETE | read: owner or party; write: owner | The character's art (PNG, JPEG, WebP or GIF, 5 MB) |
+
+**Character fields:** `id`, `name`, `schema_ref`, `schema_name`, `system`, `schema_missing`, `campaign_id`, `campaign_name`, `status`, `portrait_path`, `portrait_version`, `owned`, `created_at`, `updated_at`, and on detail `data`, `computed`, `validators`, `entries`.
+
+**Campaigns.** A character can be placed in a campaign you own (a GM campaign or a personal one) or have joined — 403 otherwise, including for an invitation you have not accepted. Everyone at that table — the owner and accepted members — can then read the sheet; only its owner can change it (`owned` is `false` for anyone else). A player may have any number of characters in one campaign.
+
+**Status** is `active` (the default), `retired` or `dead`, so a fallen character can stay beside its replacement. Any other value is a 400.
+
+### Content catalog
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/content/packs` | GET | any | Installed content packs with their licence and credit |
+| `/api/content/packs/reload` | POST | admin | Re-read every pack from disk |
+| `/api/content/:schema_id/types` | GET | any | The content types a sheet declares, with entry counts |
+| `/api/content/:schema_id/:content_type` | GET | any | Browse: `search`, `filter[field]=value`, `sort`, `page`, `page_size` |
+| `/api/content/:schema_id/:content_type/:entry_id` | GET | any | One entry in full |
+
+### Rulesets
+
+A campaign ruleset is read by everyone at that table and edited by the campaign's owner; a server ruleset (`campaign_id` null) is read by everyone and edited by admins; a personal ruleset (`personal: true`) is read and edited by its owner alone. Importing a character creates a personal ruleset for the content embedded in its file.
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/rulesets` | GET | any | Rulesets you can read. `schema_id` and `campaign_id` filter |
+| `/api/rulesets` | POST | campaign owner, or admin for a server ruleset | Create one |
+| `/api/rulesets/packs/browse` | GET | any | The community content-pack catalogue, with `installed` and `update_available` |
+| `/api/rulesets/packs/install/:pack_id` | POST | admin | Install or update a content pack |
+| `/api/rulesets/packs/:pack_id` | DELETE | admin | Uninstall a content pack |
+| `/api/rulesets/:id` | GET / PUT / DELETE | read: reader; write: editor | One ruleset |
+| `/api/rulesets/:id/export` | GET | reader | The ruleset as a portable document |
+| `/api/rulesets/:id/import` | POST | editor | Import a `pack_id`, a `document`, or `text` (JSON or YAML). `conflict`: `skip` (default), `overwrite`, `rename` |
+| `/api/rulesets/:id/fork` | POST | editor | Copy an entry into this ruleset to change it |
+| `/api/rulesets/:id/entries` | GET / POST | read: reader; write: editor | List or add entries |
+| `/api/rulesets/:id/entries/:entry_id` | GET / PUT / DELETE | read: reader; write: editor | One entry |
 
 ---
 

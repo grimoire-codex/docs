@@ -9,6 +9,7 @@ Grimoire is a self-hosted web application for managing your tabletop RPG PDF col
 - **Renders** PDF pages server-side as WebP images so the reader is fast even on mobile
 - **Tracks** maps, tokens, audio, and archive files alongside books in the same library, with a persistent global audio player
 - **Supports** campaigns (with a notes wiki, character sheets, and guest invites), bookmarks, favorites, OPDS feeds, and OpenID Connect authentication
+- **Builds characters** on live, schema-driven sheets for D&D 5e, Pathfinder, Draw Steel, Call of Cthulhu and more, with a searchable catalogue of each system's open content
 
 ## What it writes
 

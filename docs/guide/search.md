@@ -19,6 +19,14 @@ Grimoire indexes every page of every PDF using SQLite FTS5 for fast full-text se
   well as its title, so searching `PZO9001` finds that book. To search codes
   only, use `code:PZO9001` (or `sku:`)
 
+## Narrowing a gallery or system
+
+The search box at the top of a gallery (Maps, Tokens, Audio, Models) filters what you are browsing. Plain text matches an item's name, its folder path, and its tags (including tags set on a folder above it); `tag:`, `title:` (or `filename:`), and on audio `artist:` and `album:` narrow to one field. It combines with the Filters menu (tags, favourites, recently added), and the results stay grouped by folder unless grouping is turned off.
+
+The search box on a game system's page searches inside that system: books whose title, filename, or product code match are listed above the matching pages, honouring the shelf's filters. The book prefixes work there too - `author:`, `publisher:`, `year:` (`year:1985`, `year:>2000`, `year:1990-1999`), `tag:`, `code:`, `isbn:`, `language:`.
+
+Both run on the server, so they cover the whole collection even when most of it has not been loaded.
+
 ## Image-only PDFs (OCR)
 
 Scanned books with no embedded text layer show an **Image Only** badge and can't be searched from their text layer alone. The default image bundles the Tesseract OCR engine, so these are run through OCR in the background and their recognised text is added to the index, after which such books show an **OCR** badge. See the [OCR guide](/guide/ocr) for how it works, adding languages, and using the slim (no-OCR) image, or [Performance → OCR](/configuration/performance#ocr) for tuning.

@@ -47,6 +47,7 @@ export default defineConfig({
             { text: 'Token Editor', link: '/guide/token-editor' },
             { text: 'VTT Editor', link: '/guide/vtt-editor' },
             { text: 'Campaigns', link: '/guide/campaigns' },
+            { text: 'Characters', link: '/guide/characters' },
             { text: 'Community Add-ons', link: '/guide/addons' },
             { text: 'Community Projects', link: '/guide/community-projects' },
             { text: 'OPDS', link: '/guide/opds' },

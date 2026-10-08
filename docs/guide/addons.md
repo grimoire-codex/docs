@@ -5,6 +5,10 @@ they are **metadata scrapers**: they look a game system or a book up on an
 external source and offer to fill in its details, so you don't have to type
 publisher, year, licence, authors, and genre by hand.
 
+The same community repository also publishes **character sheets** and the
+**content packs** they draw from. Those are installed from **Characters →
+Manage sheets** rather than here — see [Characters](./characters).
+
 Definitions live in the separate
 [community-add-ons](https://github.com/grimoire-codex/community-add-ons)
 repository rather than inside Grimoire, so when a source changes its layout the
