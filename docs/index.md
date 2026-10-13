@@ -48,3 +48,7 @@ features:
     title: Docker Ready
     details: One command to run. Mount your library directory, set a secret key, done.
 ---
+
+::: tip Looking for a group to play with?
+I also built [findtabletop.games](https://findtabletop.games), a free way to find tabletop RPG groups and players. Grimoire handles your library; findtabletop.games helps you find the table.
+:::
