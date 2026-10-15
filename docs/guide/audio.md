@@ -17,9 +17,40 @@ The folder name is used as a group header, exactly like maps and tokens.
 
 ## Supported formats
 
-`.mp3`, `.ogg`, `.opus`, `.flac`, `.wav`, `.m4a`, `.aac`
+`.mp3`, `.ogg`, `.opus`, `.flac`, `.wav`, `.m4a`, `.m4b`, `.aac`
 
-On scan, Grimoire reads each track's embedded **duration** and **title / artist / album** tags.
+On scan, Grimoire reads each track's embedded **duration**, **title / artist / album**, and **track / disc number** tags.
+
+## Track names and order
+
+Each track in the audio list is named by its tags rather than its filename: the track
+number and title (`03 · Die Sümpfe Harodiens`), with the artist, album, and duration
+beneath. A file with no title tag shows its filename without the extension, and one with
+no artist or album shows its size in their place.
+
+The audio library opens in **Track** order: within each folder, tracks are sorted by disc
+number, then track number, then name - so an album plays in order however its files are
+named. Untagged files sort by name, ahead of any numbered tracks in the same folder. Pick
+another order from the sort menu, or **Track** to return to album order.
+
+Tracks added before Grimoire read track numbers pick them up on the next library scan.
+
+## Audiobooks
+
+Audiobooks that come with a TTRPG product, such as an adventure path read aloud, are
+usually `.m4b` files. Drop them into `audio/` like any other track and they play in the
+same player, with their embedded cover art and seeking through even a many-hour file.
+
+If the file carries chapter markers, the player shows the chapter you are in under the
+title, and a **chapters** button lists them all. Pick one to jump straight to it. Chapter
+markers are read from `.m4b`/`.m4a` files (both the QuickTime and Nero layouts) and from
+MP3 chapter tags.
+
+::: info Not an audiobook app
+Grimoire plays audiobooks; it does not remember where each user stopped or sync progress
+between devices. If that is what you are after, [Audiobookshelf](https://www.audiobookshelf.org/)
+does it well and can point at the same files.
+:::
 
 ## Artwork
 

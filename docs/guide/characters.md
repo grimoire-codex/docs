@@ -173,6 +173,53 @@ carries that the server lacks goes into a new **personal** ruleset for the
 person importing it, so it is never shared with anyone else — though a party the
 character joins still sees the sheet whole.
 
+## Importing from other tools
+
+**Characters → Import a character** also reads characters built in other tools,
+through **character importers** - community [add-ons](./addons). There are hundreds of character
+builders, each changing its format on its own schedule, so Grimoire knows none
+of them itself: each is a small community definition that can be fixed without
+a Grimoire release.
+
+**Getting one.** The dialog lists the importers you have and, under **More
+importers**, the ones you could add. One that only reads files you upload -
+Forge Steel and Pathbuilder are both this kind - you can **Install** yourself,
+for your account only, just like a sheet. One that fetches from a link or runs a
+script needs an admin: they see **Install for everyone**, everyone else sees
+**Ask an admin to install this**.
+
+Drop a file on the dialog or choose one, and Grimoire works out which importer
+it belongs to from its extension and contents. An importer that reads links
+adds a paste box. **Read it as** is only needed when two importers both claim a
+file. The dialog lists the importers your server has, and the sheet each one
+builds on.
+
+| Importer | Reads | Builds on |
+|---|---|---|
+| Forge Steel | `.ds-hero` files from Forge Steel's **Export** | Draw Steel |
+| Pathbuilder 2e | **Menu → Export → Export JSON** - open its link in your browser, save the page as a `.json` file, and upload that | Pathfinder 2e |
+
+- **The sheet comes with it.** If you have not installed the importer's sheet,
+  the import installs it from the catalogue.
+- **Picks become references.** A class, a spell or a feat is matched by name
+  against your content packs and rulesets, as if you had picked it yourself.
+  Anything your content lacks is kept as a custom entry, with the export's
+  description where it has one.
+- **Derived values stay derived.** Stamina, hit points, AC and speed follow from
+  your class, kit and ancestry, so the import doesn't freeze them.
+- **It's a one-time copy.** Editing the character never reaches back to the
+  tool it came from.
+
+Some sources need something from you - an API key for a private character, say.
+An importer that does shows the field once it is chosen; if an import turns out
+to need it, the dialog picks that importer, marks the field, and offers **Try
+again**. What you type goes with that one import and is never stored.
+
+::: tip Pathbuilder links
+Pathbuilder's site only answers browsers, so Grimoire can't fetch an Export JSON
+link for you. Open the link, save the page, and upload the file.
+:::
+
 ## Writing your own sheets and content packs
 
 A sheet you write works exactly like a catalogue one — paste it under **Manage

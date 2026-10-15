@@ -95,6 +95,8 @@ A few things are **never available to a key**: signing in, managing API keys, an
 
 **Errors.** An unknown or expired key gets `401`. A valid key without the permission a request needs gets `403`, with a message naming the permission and level it needs. A key also gets `403` once its owner loses API key access, or while `API_KEYS_ENABLED=false`. Too many wrong keys from one address get `429` (see [Security](/configuration/security)).
 
+**MCP.** With `MCP_ENABLED=true`, keys also authenticate the [MCP server](/guide/mcp) at `POST /mcp`. Each MCP tool, resource and prompt checks the permission it needs, and a key is only shown the ones it can use.
+
 ### Calling the API from a browser
 
 Server-side tools like Homepage and grimoire-cli need nothing extra. Code that runs in a web page on another site, such as a Foundry VTT module, a browser extension or a dashboard, is blocked by the browser unless you allow that site with `CORS_ALLOWED_ORIGINS`:
@@ -256,6 +258,8 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | `/api/maps/:id/vtt/image` | GET | any | Battlemap image decoded out of a `.uvtt`/`.dd2vtt` file |
 | `/api/maps/:id/vtt/data` | GET | any | Grid resolution and wall/portal/light counts from a Universal VTT file |
 | `/api/maps/:id/export.uvtt` | GET | any | Builds a Universal VTT file for a raster map: the image, the grid, and anything authored in the editor |
+| `/api/maps/:id/otfbm` | GET | may share | How to set the map up as an [OTFBM](/guide/otfbm) background: the whole-cell map size, cell size (`?cell=` 20–100, defaults to a suggestion), and the resized image size |
+| `/api/maps/:id/otfbm/image` | GET | may share | The map resized so each cell is `?cell=` pixels, as a JPEG (PNG when transparent), named `<slug>-<W>x<H>c<cell>` |
 | `/api/maps/:id/vtt/authoring` | GET | any | Authored walls, portals, lights and environment, with the resolved grid. `data` is null when nothing is authored |
 | `/api/maps/:id/vtt/authoring` | PUT | gm/admin | Replaces a map's authored geometry in one atomic write. Body: `{data}` — send `{"data": null}` to clear |
 | `/api/maps/:id/thumbnail` | GET | any | WebP thumbnail |
@@ -360,7 +364,7 @@ The gallery list routes (`/api/maps`, `/api/tokens`, `/api/audio`, `/api/models`
 | `favorites` | `true` for the caller's favourites only |
 | `added_since` | Items added at or after this ISO time |
 | `folder` | Only items directly in this folder (`""` for the collection root) |
-| `sort`, `order` | `path` (default), `name` (natural order), `size`, `added_at`; audio also `title`, `duration`. `asc` or `desc` |
+| `sort`, `order` | `path` (default), `name` (natural order), `size`, `added_at`; audio also `title`, `duration`, `track` (folder, then disc and track number, then name). `asc` or `desc` |
 
 `/groups` returns `{total, groups: [{path, count}]}` - every folder holding matching items. A tag's items are paged the same way: `/api/tags/:internal/items` returns per-type counts, the tagged folders with counts, and a page of directly-tagged items (`resource_type`, `limit`, `offset`), and `/api/tags/:internal/folder-items` pages through one tagged folder.
 
@@ -523,6 +527,10 @@ Sheets (schemas) and characters are stored **per user**, so any signed-in user �
 | `/api/characters/:id` | DELETE | owner | Delete a character |
 | `/api/characters/:id/export` | GET | owner or party | A self-contained file, with the sheet and every referenced entry embedded |
 | `/api/characters/import` | POST | any | Rebuild a character from an exported file. Body: `{payload, import_entries?}` |
+| `/api/characters/importers` | GET | any | `{importers, available, downloads_enabled}`: the importers you can run (`scope` server or user, the `sheet` each builds on, `extensions`, whether it reads files and links, its `inputs`), and catalogue importers you lack with `install_as` - `user`, `server`, `settings` or `admin` |
+| `/api/characters/importers/:id/install` | POST | any | Install a file-only YAML importer for yourself, or update your copy |
+| `/api/characters/importers/:id` | DELETE | any | Remove an importer you installed |
+| `/api/characters/import/external` | POST | any | Build a character from another tool's export. Body: `{text, filename}` for a file or `{url}` for a link, plus optional `importer_id`, `campaign_id` and `inputs` (`{key: value}` answers to the importer's declared inputs, never stored). The importer is recognised automatically unless named; 409 when several claim it. A missing input answers 400 with `detail: {message, importer_id, needs_input}`. Installs the importer's sheet from the catalogue if you lack it. Returns the character plus `importer_id`, `importer_name` and `unmatched` (names kept as custom entries) |
 | `/api/characters/:id/portrait` | GET / POST / DELETE | read: owner or party; write: owner | The character's art (PNG, JPEG, WebP or GIF, 5 MB) |
 
 **Character fields:** `id`, `name`, `schema_ref`, `schema_name`, `system`, `schema_missing`, `campaign_id`, `campaign_name`, `status`, `portrait_path`, `portrait_version`, `owned`, `created_at`, `updated_at`, and on detail `data`, `computed`, `validators`, `entries`.
@@ -583,6 +591,33 @@ Manage your [API keys](#api-keys). These need a login: a key can never manage ke
 | `/api/api-keys/:id` | PATCH | Rename your key or change its permissions or expiry (`expires_at: null` means never) |
 | `/api/api-keys/:id/regenerate` | POST | Issue a new key with the same name and permissions. The old key stops working immediately |
 | `/api/api-keys/:id` | DELETE | Revoke your key. Admins can revoke anyone's |
+
+---
+
+## Share links
+
+Public, revocable links to one book, map, token, audio track or 3D model - see [Share links](/guide/sharing). Managing them needs a login or an API key with the **Share links** permission; guests never can.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/share-links` | GET | Your links, newest first, each with its `state` (`active`, `disabled`, `revoked`, `expired`, `suspended`, `unavailable`). Filter with `resource_type` and `resource_id` |
+| `/api/share-links` | POST | Create a link. Body: `{resource_type, resource_id, label?, expires_in_days?, password?, variant?, cell?}`, where `resource_type` is `book`, `map`, `token`, `audio` or `model` and `expires_in_days: null` means never. `variant: "otfbm"` (maps only) serves the map resized as an [OTFBM](/guide/otfbm) background at `cell` px per square. Returns the link with `url` (the share page) and `file_url` (the raw file) |
+| `/api/share-links/permission` | GET | Whether you may create links, and whether that comes from your role or a per-user setting |
+| `/api/share-links/:id` | PATCH | Change the label, expiry or password (`password: null` removes it) |
+| `/api/share-links/:id/revoke` | POST | Stop a link working for good. It stays listed as revoked |
+| `/api/share-links/:id` | DELETE | Remove a link |
+| `/api/share-links/all` | GET | Every user's links *(admin only)* |
+| `/api/share-links/users/:user_id` | GET | One user's links *(admin only)* |
+
+The public side needs no authentication at all - the token is the credential:
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/share/:token/meta` | GET | What the share page shows. For a password-protected link, only `password_required` and `unlocked` until it is unlocked |
+| `/api/share/:token/unlock` | POST | Body `{password}`. Unlocks the link in this browser for 12 hours |
+| `/api/share/:token/:filename` | GET, HEAD | The item itself (`?download=1` for an attachment). The filename is ignored, and is there for tools that read a file's type from the URL |
+
+Every way a link can fail to work - unknown, expired, revoked, suspended, or the item gone - is the same `404`. Responses allow cross-origin reads (`Access-Control-Allow-Origin: *`), so VTTs such as Owlbear Rodeo can load them.
 
 ---
 

@@ -45,9 +45,10 @@ Folder name matching is **case-insensitive** and treats hyphens, underscores, an
 | Character Sheets | `character-sheets`, `character sheets`, `charsheets`, `sheets` |
 | Handouts | `handouts`, `reference`, `screen` |
 | Homebrew | `homebrew`, `custom`, `house-rules`, `unofficial` |
+| Magazines & Zines | `magazines`, `zines`, `fanzines`, `periodicals`, `journals`, `issues`, `back issues` |
 
 ::: tip
-`players`, `gms`, `game masters`, `sheets` and `sources` count only when they are the whole folder name. In a longer name the more specific word decides: `Player Handouts` and `GM Screens` are handouts, `Cheat Sheets` stays with handouts, and `Source Adventures` are adventures.
+`players`, `gms`, `game masters`, `sheets`, `sources`, `journals`, `issues` and `back issues` count only when they are the whole folder name. In a longer name the more specific word decides: `Player Handouts` and `GM Screens` are handouts, `Cheat Sheets` stays with handouts, `Source Adventures` are adventures, and `Zine Maps` are maps.
 
 Files placed directly in a system folder (not in a subfolder) default to the **Core Rulebooks** category.
 
@@ -354,7 +355,7 @@ audio/
     └── track.mp3
 ```
 
-Supported formats: `.mp3`, `.ogg`, `.opus`, `.flac`, `.wav`, `.m4a`, `.aac`. Duration and embedded title/artist/album tags are read on scan. See the [Audio Library](/guide/audio) guide for playback and the global player.
+Supported formats: `.mp3`, `.ogg`, `.opus`, `.flac`, `.wav`, `.m4a`, `.m4b`, `.aac`. Duration and embedded title/artist/album tags are read on scan. See the [Audio Library](/guide/audio) guide for playback and the global player.
 
 ## Models
 

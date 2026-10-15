@@ -1,9 +1,16 @@
 # Community Add-ons
 
-Add-ons are optional extensions you install from a community catalogue. Today
-they are **metadata scrapers**: they look a game system or a book up on an
-external source and offer to fill in its details, so you don't have to type
-publisher, year, licence, authors, and genre by hand.
+Add-ons are optional extensions you install from a community catalogue. There
+are two kinds:
+
+- **Metadata scrapers** look a game system or a book up on an external source
+  and offer to fill in its details, so you don't have to type publisher, year,
+  licence, authors, and genre by hand.
+- **Character importers** read a character built in another tool - a Forge
+  Steel hero, a Pathbuilder export - and build it on one of Grimoire's character
+  sheets. See [Importing from other tools](./characters#importing-from-other-tools).
+
+**Settings → Add-ons** lists each kind under its own heading.
 
 The same community repository also publishes **character sheets** and the
 **content packs** they draw from. Those are installed from **Characters →
@@ -13,6 +20,10 @@ Definitions live in the separate
 [community-add-ons](https://github.com/grimoire-codex/community-add-ons)
 repository rather than inside Grimoire, so when a source changes its layout the
 fix is a community pull request — not a wait for the next Grimoire release.
+
+[Grimoire Codex DB](./codex), the community catalogue, is not an add-on: it is
+built in and needs no install. Once an admin sets `GRIMOIRE_CODEX_DB_API_TOKEN`, it appears
+first in **Fetch metadata** alongside any add-ons you install.
 
 ## Installing an add-on
 
@@ -50,7 +61,8 @@ when it changes; update it the same way you installed it.
 
 ## Filling in metadata
 
-1. Open a game system or a book and click **Edit**.
+1. Open a game system or a book and click **Edit**. While reading a book, you
+   can instead open its details panel and click the pencil.
 2. Click **Fetch metadata**.
 3. Choose a source and confirm the search term (it starts as the system's name
    or the book's title).
@@ -160,7 +172,23 @@ near-misses. **Check the publisher shown next to each result** before applying
 it — that's why it's there. A book sold only through its publisher's own store
 won't be found at all.
 
-More are welcome — see [contributing](#writing-your-own) below.
+### Character importers
+
+| Add-on | Reads | Builds on |
+|---|---|---|
+| Forge Steel | `.ds-hero` files from [Forge Steel](https://forgesteel.net)'s Export | Draw Steel |
+| Pathbuilder 2e | [Pathbuilder 2e](https://pathbuilder2e.com)'s Export JSON, saved as a file | Pathfinder 2e |
+
+Once an admin installs an importer, everyone on the server - guests included -
+can use it from **Characters → Import a character**. An importer that only reads
+uploaded files (both of these) doesn't need an admin at all: anyone can install
+it for their own account from that dialog. Importers that fetch links or run
+scripts stay admin-only. An import only ever
+creates a character in the importing person's own account.
+
+More are welcome — see [contributing](#writing-your-own) below, and
+[Writing a character importer](https://github.com/grimoire-codex/community-add-ons/blob/main/docs/character-importers.md)
+for importers.
 
 ## Add-ons that run code
 

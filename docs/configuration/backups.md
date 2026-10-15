@@ -11,7 +11,8 @@ grimoire-backup-20260821T140355Z.zip
 ├── grimoire.db         the SQLite database
 ├── campaign_uploads/   banners, character art, sheets, campaign files
 ├── system_covers/      custom game-system cover images
-└── audio_covers/       custom audio cover art
+├── audio_covers/       custom audio cover art
+└── branding/          the uploaded OIDC sign-in button icon
 ```
 
 The database is copied using SQLite's online backup API rather than a plain file copy, so
@@ -186,4 +187,4 @@ in, producing a single self-consistent file. It is safe on a running server; `cp
 :::
 
 Remember that a database-only snapshot leaves out `campaign_uploads/`, `system_covers/`,
-and `audio_covers/`, which Grimoire's own backups include.
+`audio_covers/`, and `branding/`, which Grimoire's own backups include.

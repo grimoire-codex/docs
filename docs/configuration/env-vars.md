@@ -24,7 +24,18 @@
 |---|---|---|
 | `VALKEY_URL` | _none_ | Redis-compatible cache URL for rendered page images (e.g. `redis://valkey:6379/0`). Falls back to disk cache when unset. Also shares auth rate-limit counters across replicas; see [Security](/configuration/security). |
 | `OPDS_ENABLED` | `false` | Set to `true` to enable the OPDS catalog. |
+| `MCP_ENABLED` | `false` | Set to `true` to serve the MCP endpoint at `/mcp`, so AI assistants such as Claude Code can use your library. It authenticates with API keys, so `API_KEYS_ENABLED` must stay on. See [MCP](/guide/mcp). |
 | `DISABLE_VERSION_CHECKING` | `false` | Set to `true` to disable the "update available" check. When off, Grimoire proxies GitHub's releases API server-side (cached ~1h) so the sidebar can show when a newer release exists; when on, no outbound request to GitHub is ever made and no update banner appears. |
+
+## Grimoire Codex DB
+
+Grimoire Codex DB is off and hidden unless `GRIMOIRE_CODEX_DB_API_TOKEN` is set. The other variables pin a setting from **Settings → Add-ons → Grimoire Codex DB** and show it read-only there. See [Grimoire Codex DB](/guide/codex).
+
+| Variable | Description |
+|---|---|
+| `GRIMOIRE_CODEX_DB_API_TOKEN` | A `cdx_…` token from a Grimoire Codex DB account (**Account → API tokens**). Turns Grimoire Codex DB on; without it nothing about Grimoire Codex DB is shown. Every request uses it, and records sent are credited to its account. Never stored or shown by Grimoire. |
+| `GRIMOIRE_CODEX_DB_URL` | The Grimoire Codex DB address, for a self-hosted Grimoire Codex DB. Defaults to `https://db.grimoirecodex.org`. |
+| `GRIMOIRE_CODEX_DB_SEND_HASHES` | `true` or `false`. Whether book lookups and submissions include the file's SHA-256. Off by default; `true` is recommended for exact matches. |
 
 ## Backups
 
@@ -66,6 +77,7 @@ Image-only PDFs (scanned books with no embedded text) can be run through the bun
 | `API_KEYS_ENABLED` | Set to `false` to turn [API keys](/api#api-keys) off for the whole instance, admins included: existing keys stop working and the key menus disappear. On by default. Which users may hold keys is set per user in Settings → Users. |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated origins, e.g. `https://foundry.example.com`, whose web pages may call the API from the browser: a Foundry VTT module, a browser extension, a dashboard. Unset by default, which sends no CORS headers. Entries must be exact origins (`scheme://host[:port]`); a wildcard or a path is ignored with a warning. Server-side tools like Homepage don't need it. See [API → Calling the API from a browser](/api#calling-the-api-from-a-browser). |
 | `GUEST_ACCESS_ENABLED` | `true` or `false`. Pins guest invite codes on or off, overriding the in-app toggle (shown read-only). Off by default. See [Guest Access](/guide/guest-access). |
+| `SHARE_LINKS_ENABLED` | Set to `false` to turn [share links](/guide/sharing) off for the whole instance: every existing link stops working and the Share buttons disappear. The links are kept, so turning it back on restores them. On by default. Who may create links is set in Settings → Users. |
 
 ## Security
 
@@ -95,6 +107,11 @@ Each OIDC setting can be pinned via environment variable. Pinned values are show
 | `OIDC_CLIENT_SECRET` | Client secret issued by the IdP. |
 | `OIDC_SIGNING_ALG` | One of `RS256`/`RS384`/`RS512`/`ES256`/`ES384`/`ES512`/`PS256`/`PS384`/`PS512`/`HS256`. Default `RS256`. |
 | `OIDC_BUTTON_TEXT` | Label for the SSO button on the login page. |
+| `OIDC_BUTTON_BG_COLOR` | Button background, a CSS hex color such as `#131314`. Invalid values are ignored with a log warning. |
+| `OIDC_BUTTON_TEXT_COLOR` | Button text color, CSS hex. |
+| `OIDC_BUTTON_BORDER_COLOR` | Button border color, CSS hex. |
+| `OIDC_BUTTON_RADIUS` | Button corner radius in px, an integer from 0 to 40. |
+| `OIDC_BUTTON_ICON` | Path to an image file inside the container (PNG, JPEG, WebP, GIF or SVG, up to 1 MB) used as the button icon. It is normalized to a PNG like an upload. Set it empty to pin "no icon". See [Style the sign-in button](/guide/oidc#style-the-sign-in-button). |
 | `OIDC_GROUPS_CLAIM` | Name of the claim containing group memberships. |
 | `OIDC_PERMISSIONS_CLAIM` | Name of the claim containing a permissions object. |
 | `OIDC_MATCH_BY` | `none`, `email`, or `username`: how to link existing accounts on first OIDC login. |

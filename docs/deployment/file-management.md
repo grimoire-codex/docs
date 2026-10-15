@@ -43,8 +43,8 @@ built for bulk reorganization rather than a plain file listing.
 - **Create folders**, including system, category, and container folders. Choosing
   a container type writes the right marker file for you. **Create standard
   category folders** sets up a whole system in one step — Core, Supplements,
-  Adventures, Character Sheets, Maps, Handouts, Homebrew, and Starter Sets, named
-  so the scanner classifies them correctly.
+  Adventures, Character Sheets, Maps, Handouts, Homebrew, Starter Sets, and
+  Magazines, named so the scanner classifies them correctly.
 - **Mark a folder NSFW or SFW**, or change its container type, without recreating
   it.
 - **Rescan** from here: the **Rescan** button re-indexes the whole library, and
