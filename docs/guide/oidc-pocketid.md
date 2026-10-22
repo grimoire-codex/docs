@@ -11,27 +11,34 @@ In Pocket ID, go to **User Groups** and create these groups:
 | `grimoire-admin` | Full admin access |
 | `grimoire-gm` | GM role |
 | `grimoire-player` | Player role |
-| `nsfw` | Grants explicit content access to non-admin users |
-| `apikeys` | Lets non-admin users create [API keys](/api#api-keys) |
 
-Pocket ID sends group names in the `groups` claim. Grimoire recognizes names that end in `-admin`, `-gm`, or `-player` (case-insensitive), so no scope mapping is needed.
+Pocket ID sends group names in the `groups` claim. You tell Grimoire these names in step 4, so no scope mapping is needed. (Grimoire matches group names exactly, so a group from another app that happens to end in `-admin` grants nothing here.)
 
 Assign your users to the appropriate groups.
 
 ## 2. Add the permissions claim
 
-Grimoire reads explicit content access (`viewNSFW`) and API key access (`apiKeys`) from a `permissions` claim. Admins always have API keys. Pocket ID has no scripted claims, so add a **custom claim** to each group (open the group and use **Custom Claims**):
+Grimoire reads explicit content access (`viewNSFW`), campaign access (`campaignAccess`) and API key access (`apiKeys`) from a `permissions` claim. Admins always have API keys. Pocket ID has no scripted claims, so the claim is set as a **custom claim** (open the group or user and use **Custom Claims**).
+
+Pocket ID doesn't merge custom claims. The `permissions` value is one JSON object, and a user gets exactly one of them:
+
+- A claim set on the **user** always wins over their groups' claims.
+- If several of a user's **groups** set `permissions`, only one group's object is sent, and Pocket ID doesn't define which. A `{"viewNSFW": true}` on one group and a `{"viewNSFW": false}` on another don't combine; the user gets one or the other.
+
+So give each role group a complete default, and make exceptions per user rather than with extra groups:
 
 | Group | Key | Value |
 |---|---|---|
-| `grimoire-admin` | `permissions` | `{"viewNSFW": true}` |
-| `nsfw` | `permissions` | `{"viewNSFW": true}` |
-| `apikeys` | `permissions` | `{"apiKeys": true}` |
-| `grimoire-gm` | `permissions` | `{"viewNSFW": false}` |
-| `grimoire-player` | `permissions` | `{"viewNSFW": false}` |
+| `grimoire-admin` | `permissions` | `{"viewNSFW": true, "campaignAccess": true, "apiKeys": true}` |
+| `grimoire-gm` | `permissions` | `{"viewNSFW": false, "campaignAccess": true, "apiKeys": false}` |
+| `grimoire-player` | `permissions` | `{"viewNSFW": false, "campaignAccess": true, "apiKeys": false}` |
+
+To let one player see explicit content or create API keys, open that **user** and add a `permissions` custom claim with the full object, e.g. `{"viewNSFW": true, "campaignAccess": true, "apiKeys": true}`. Delete it to put them back on their group's default.
+
+Spell out every key in each object. A missing key only sets the default on a new account (explicit content off, campaign access on, API keys off). After that it leaves the account as it was, so deleting a user's override doesn't take back what it granted unless their group's object says `false`. See [Permissions claim](/guide/oidc#permissions-claim).
 
 ::: warning
-Grimoire denies login if the permissions claim is missing, so every user must belong to a group that sets it. The claim must arrive as a JSON object, not a string.
+Grimoire denies login if the permissions claim is missing, so every user must belong to a role group that sets it (or carry it on their own account). The claim must arrive as a JSON object, not a string.
 :::
 
 ## 3. Create the OIDC client
@@ -57,7 +64,7 @@ In **Settings → Authentication**:
 1. Set **Issuer URL** to your Pocket ID address (e.g. `https://id.example.com`) and click **Autopopulate**.
 2. Paste your **Client ID** and **Client Secret**.
 3. Confirm the displayed **Redirect URI** matches the Callback URL you set in Pocket ID.
-4. Set **Groups Claim** to `groups`.
+4. Set **Groups Claim** to `groups`, then set **Admin group** to `grimoire-admin`, **GM group** to `grimoire-gm` and **Player group** to `grimoire-player`.
 5. Set **Advanced Permissions Claim** to `permissions`.
 6. Enable **Auto-register** if you want accounts created automatically on first login.
 7. Enable **OpenID Connect**.

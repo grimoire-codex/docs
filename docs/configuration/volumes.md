@@ -102,3 +102,60 @@ environment:
 volumes:
   - /host/data:/my/custom/data
 ```
+
+## File ownership
+
+Grimoire does not run as root. The container starts as root just long enough to get the
+data volume ready, then switches to an ordinary user before Grimoire starts, so a flaw in a
+PDF parser or a third-party add-on would not have root access to your files. You don't need
+to set anything.
+
+**Which user.** By default, whoever owns your library folder, so files Grimoire creates
+there (uploads, exported sidecars) belong to you like the rest of your library. If the
+library belongs to root, it uses the owner of the data folder, then the built-in `grimoire`
+user (`1000:1000`).
+
+**The data volume** is handed to that user on every start: anything in it with another
+owner is changed. So is a [`BACKUP_DIR`](/configuration/backups#storage-location) set in the
+container's environment. After upgrading from a version that ran as root, the first start does
+this for the old files, which can take a moment with a large thumbnail cache. **Your library
+is never changed.** A backup folder chosen in Settings rather than with `BACKUP_DIR` is left as
+it is; if that user can't write to it, the log says so, and you can give it access on the host
+or set `BACKUP_DIR` instead.
+
+**Nothing breaks on upgrade.** If that user couldn't read your library, couldn't write to a
+library root could write to (one mounted without `:ro`), or couldn't write to the data
+volume (say, a network share that refuses to change owners), Grimoire stays root and the
+log says why and how to fix it. Symlinks, `lost+found`, and entries that user already owns at
+the top of the library don't count towards that check.
+
+### Choosing the user: `PUID` / `PGID`
+
+The convention Unraid and LinuxServer images use. When set, Grimoire always runs as exactly
+this user, so check the log after a change. `PUID=0` keeps it running as root.
+
+```yaml
+environment:
+  - PUID=99    # Unraid's nobody
+  - PGID=100   # Unraid's users
+```
+
+### Starting as a fixed user: `--user`
+
+`user: "1000:1000"` in compose, `docker run --user`, or `runAsUser` in Kubernetes skips the
+switch entirely. Nothing can change owners in this mode, so the data volume must already be
+writable by that user. On an install that used to run as root, fix it once on the host:
+
+```bash
+sudo chown -R 1000:1000 /path/to/grimoire/data
+```
+
+In Kubernetes, set `runAsUser: 1000`, `runAsGroup: 1000` and `fsGroup: 1000` in the pod's
+`securityContext`; that also satisfies `runAsNonRoot: true`.
+
+### Rootless Podman and Docker
+
+Under rootless Podman (Quadlets included) or rootless Docker, root inside the container is
+already your own unprivileged account on the host, so Grimoire stays as it and the files it
+creates belong to you, as before. `PUID`/`PGID` still switch to that user inside the
+container, and Podman's `--userns=keep-id` works like `--user`.

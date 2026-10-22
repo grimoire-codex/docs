@@ -2,6 +2,8 @@
 
 The fastest way to get a working compose file is the **[Compose Generator](/compose-generator)**: it fills in your paths, generates a secret key, and lets you download the file directly.
 
+The examples below pull from Docker Hub (`hunterreadca/grimoire`). Every release and `nightly` tag is also published to the GitHub Container Registry, so you can swap in `ghcr.io/hunter-read/grimoire` with the same tag if you prefer.
+
 ## Minimal setup
 
 ```yaml
@@ -15,8 +17,8 @@ services:
     environment:
       - LIBRARY_PATH=/library
       - DATA_PATH=/data
-      - WORKERS=2
-      - SECRET_KEY=change-me   # openssl rand -hex 32
+      - WORKERS=1
+      - SECRET_KEY=<paste the generated value here>   # openssl rand -hex 32, or delete this line
     volumes:
       - /path/to/your/library:/library:ro
       - /path/to/grimoire/data:/data
@@ -37,9 +39,11 @@ services:
     environment:
       - LIBRARY_PATH=/library
       - DATA_PATH=/data
-      - WORKERS=2
-      - SECRET_KEY=change-me
-      - VALKEY_URL=redis://valkey:6379/0
+      - WORKERS=1
+      - SECRET_KEY=<paste the generated value here>
+      # Valkey also holds sign-in counters, so it has a password: generate one
+      # (openssl rand -hex 24) and use the same value on the valkey service.
+      - VALKEY_URL=redis://:<valkey password>@valkey:6379/0
     volumes:
       - /path/to/your/library:/library:ro
       - /path/to/grimoire/data:/data
@@ -52,6 +56,7 @@ services:
     image: valkey/valkey:8-alpine
     container_name: grimoire-valkey
     restart: unless-stopped
+    command: ["valkey-server", "--requirepass", "<valkey password>"]
     volumes:
       - valkey_data:/data
     networks:

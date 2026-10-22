@@ -21,6 +21,13 @@
       <h2>Grimoire image</h2>
       <div class="cg-row">
         <div class="cg-field">
+          <label>Registry <span class="cg-hint">(same images on both)</span></label>
+          <select v-model="form.registry">
+            <option value="dockerhub">Docker Hub</option>
+            <option value="ghcr">GitHub (ghcr.io)</option>
+          </select>
+        </div>
+        <div class="cg-field">
           <label>Image tag</label>
           <div class="cg-input-row">
             <select v-model="form.imageTag">
@@ -35,7 +42,7 @@
           <input type="number" v-model.number="form.hostPort" min="1" max="65535" />
         </div>
         <div class="cg-field">
-          <label>Workers</label>
+          <label>Workers <span class="cg-hint">(1 suits most tables; see <a href="/configuration/performance#workers">when to use 2</a>)</span></label>
           <input type="number" v-model.number="form.workers" min="1" max="16" />
         </div>
       </div>
@@ -62,7 +69,7 @@
     <!-- Secret key -->
     <section class="cg-section">
       <h2>Secret key</h2>
-      <p class="cg-desc">Used to sign JWT tokens. Must be a long random string; keep it private.</p>
+      <p class="cg-desc">Used to sign JWT tokens. Must be a long random string (at least 32 characters); keep it private. Leave it empty and Grimoire generates one on first start and keeps it in the data volume.</p>
       <div class="cg-input-row">
         <input
           :type="showSecret ? 'text' : 'password'"
@@ -261,11 +268,12 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 
 const form = reactive({
   runtime: 'docker',
+  registry: 'dockerhub',
   imageTag: 'latest',
   customTag: '',
   slimImage: false,
   hostPort: 9481,
-  workers: 2,
+  workers: 1,
   libraryPath: '/path/to/your/library',
   dataPath: '/path/to/grimoire/data',
   secretKey: '',
@@ -351,10 +359,24 @@ onMounted(() => {
 
 // ── Computed image ref ───────────────────────────────────────────────────────
 
+// Release and nightly tags are pushed to both registries from the same build.
+const REGISTRY_IMAGES = {
+  dockerhub: 'hunterreadca/grimoire',
+  ghcr: 'ghcr.io/hunter-read/grimoire',
+}
+
+// Podman's AutoUpdate=registry only accepts fully qualified image names, so
+// Quadlet output spells out docker.io for Docker Hub images.
+function qualifyImage(ref) {
+  const first = ref.split('/')[0]
+  const hasRegistry = ref.includes('/') && (first.includes('.') || first.includes(':') || first === 'localhost')
+  return hasRegistry ? ref : `docker.io/${ref}`
+}
+
 const imageRef = computed(() => {
   const base = form.imageTag === 'custom' ? (form.customTag || 'latest') : form.imageTag
   const tag = form.slimImage ? `${base}-slim` : base
-  return `hunterreadca/grimoire:${tag}`
+  return `${REGISTRY_IMAGES[form.registry]}:${tag}`
 })
 
 // ── Compose generation ───────────────────────────────────────────────────────
@@ -388,8 +410,10 @@ function envBlock(indent = '      ') {
     `${indent}- LIBRARY_PATH=/library`,
     `${indent}- DATA_PATH=/data`,
     `${indent}- WORKERS=${form.workers}`,
-    `${indent}- SECRET_KEY=${form.secretKey || 'change-me'}`,
   ]
+  // No key: leave the line out and Grimoire generates one in the data volume.
+  // A placeholder like change-me would be refused at start-up.
+  if (form.secretKey) lines.push(`${indent}- SECRET_KEY=${form.secretKey}`)
   for (const [k, v] of extraEnvPairs()) lines.push(`${indent}- ${k}=${v}`)
   return lines.join('\n')
 }
@@ -503,8 +527,8 @@ function buildQuadletGrimoire() {
     `Environment=LIBRARY_PATH=/library`,
     `Environment=DATA_PATH=/data`,
     `Environment=WORKERS=${form.workers}`,
-    `Environment=SECRET_KEY=${form.secretKey || 'change-me'}`,
   ]
+  if (form.secretKey) envLines.push(`Environment=SECRET_KEY=${form.secretKey}`)
   for (const [k, v] of extraEnvPairs()) envLines.push(`Environment=${k}=${v}`)
 
   const deps = []
@@ -516,7 +540,7 @@ function buildQuadletGrimoire() {
 Description=Grimoire TTRPG Library Manager
 ${deps.length ? deps.join('\n') + '\n' : ''}
 [Container]
-Image=${imageRef.value}
+Image=${qualifyImage(imageRef.value)}
 ContainerName=grimoire
 PublishPort=${form.hostPort}:9481
 Volume=${form.libraryPath}:/library${form.libraryWritable ? '' : ':ro'}
@@ -536,7 +560,7 @@ function buildQuadletValkey() {
 Description=Valkey page cache for Grimoire
 
 [Container]
-Image=valkey/valkey:8-alpine
+Image=docker.io/valkey/valkey:8-alpine
 ContainerName=grimoire-valkey
 Volume=grimoire-valkey-data:/data
 AutoUpdate=registry

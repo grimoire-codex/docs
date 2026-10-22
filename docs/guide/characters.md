@@ -50,7 +50,7 @@ characteristic.
 - **Browse sheets** lists the community catalogue, with each sheet's licence and
   credit shown before you install it.
 - **Paste a sheet** takes one you wrote or were sent: the sheet itself (JSON or
-  YAML), and optionally its layout HTML and stylesheet.
+  YAML - without anchors and aliases), and optionally its layout HTML and stylesheet.
 
 Sheets are **per user**, like themes — installing one changes nothing for anyone
 else, so no admin approval is involved, and guests can install them too. A
@@ -68,7 +68,16 @@ fill in the sheet. Edits save as you type.
   changes.
 - **Warnings** appear when the sheet notices something — more spells prepared
   than your maximum, say. They never block saving.
-- **Art** sits in the sheet's header: click the thumbnail to add or change it.
+- **Art** sits in the sheet's header: click the empty thumbnail to add some.
+  Some sheets also draw it large on a page - the D&D 5e sheet puts it on Spells
+  & Details.
+- **Click the art to see it properly.** It opens large, and on your own
+  character this is where you replace or remove it and choose its **framing**:
+  click or drag on the picture to pick the part that stays in view, and zoom in.
+  The header, your character list and the sheet all keep that point showing, so
+  tall art keeps its head.
+- **Some sheets hold other pictures** - a knight's coat of arms, a ship. Add,
+  replace or remove one where the sheet shows it (PNG, JPEG, WebP or GIF, 5 MB).
 - **Picked entries open.** Click a feat or a spell to read the whole entry.
 - **Choices fill in the rest.** On the D&D 5e sheet, picking a class sets your
   saves, hit dice and spellcasting ability, then asks for its skill choices;
@@ -102,7 +111,7 @@ they produced.
 
 Put a character in a campaign and everyone at that table can **read** its sheet
 — so a GM can see what the party is playing. Only the player who made it can
-edit it.
+edit it, unless they [let the GM edit](#letting-the-gm-edit).
 
 You can put a character in any campaign you are at the table for:
 
@@ -111,9 +120,42 @@ You can put a character in any campaign you are at the table for:
 - **One you have joined.** A pending invitation does not count until you accept
   it.
 
-Choose the campaign when you create the character, or change it any time from
-the dropdown under the character's name in the sheet's header. **No campaign**
+Choose the campaign when you create the character, change it any time from
+the dropdown under the character's name in the sheet's header, or press **Add
+character** in the **Characters** card on the campaign's page. **No campaign**
 makes the sheet private again.
+
+A GM can put their own characters in a campaign they run too — NPCs, or the
+whole party of a solo game — and a GM-only campaign with no players works the
+same way.
+
+### On the campaign page
+
+The campaign's page has a **Characters** card listing every character in the
+campaign, grouped under the player who owns it: the GM first, then you, then
+everyone else. Click a character to open its sheet.
+
+Each player shows only the characters they are playing now. Their retired and
+fallen characters fold away behind a **past characters** toggle under their
+name, so a player on their tenth character still takes up one line until you
+want the history.
+
+### Letting the GM edit
+
+Tick **Let the GM edit** in the sheet's header and the campaign's GM can edit
+your character too — fix a typo, take off hit points, add the loot they handed
+out. It is off for every new character, and works the same whatever sheet the
+character is built on.
+
+- The GM edits the sheet itself: its values, the character's name, its art and
+  the pictures on it. Where the character is played, its status, and this
+  setting stay yours, and only you can delete the character.
+- Only the GM who runs the campaign gets in. The other players at the table
+  still just read the sheet.
+- Moving the character to another campaign turns it off, so a new GM has to be
+  let in again.
+- It is only offered when the campaign has a GM besides you — not for a
+  character in no campaign or in your own personal campaign.
 
 ### More than one character
 
@@ -121,7 +163,8 @@ Characters die, retire, and get replaced, so a player can have any number of
 characters in the same campaign. Instead of deleting the old one, set its
 **status** — the second dropdown in the sheet's header — to **Retired** or
 **Dead**. It stays readable, greyed out on the Characters page and listed after
-the characters still being played.
+the characters still being played, and on the campaign page it moves under that
+player's **past characters**.
 
 ## Content packs and rulesets
 
@@ -166,7 +209,8 @@ Reload from disk**.
 
 **Export** in the sheet's header writes a self-contained file: every entry the
 character uses is embedded, and the sheet definition travels with it, so it
-opens on a server that has neither the pack nor the ruleset. Import it from
+opens on a server that has neither the pack nor the ruleset. The art, its
+framing and any other pictures on the sheet travel with it too. Import it from
 **Characters → Import a character**. The receiving server prefers its own copy of
 each entry, so a shared character picks up local corrections. Anything the file
 carries that the server lacks goes into a new **personal** ruleset for the
@@ -246,3 +290,8 @@ can offer several catalogues at once — the official one alongside a friend's
 fork. Sheets from every source appear together, labelled with where they came
 from, and a source that cannot be reached is called out rather than quietly
 left out.
+
+A source can also be a **private repository**, for licensed or non-SRD sheets
+and content packs that should stay within your table. Give it an access token
+and its sheets and packs install and update like any others - see
+[Using a private repository](/guide/addons#using-a-private-repository).

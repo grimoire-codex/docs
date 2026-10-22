@@ -24,10 +24,12 @@ From a GM campaign (admins and GMs only):
 - **Regenerate** a guest's code, invalidating the old one.
 - **Remove** the guest entirely, which deletes their guest account and contributions.
 
+A guest's session ends once guest access is turned off or the guest is removed, and deleting a campaign removes its guest accounts too. Invite codes can only be managed from a signed-in session, never with an [API key](/api#api-keys).
+
 ## Logging in as a guest
 
 Guests log in from the login screen via **Have an invite code?**. This works even on OIDC-only servers where password login is disabled. In the app a guest sees the nickname their GM gave them and a **GUEST** role.
 
 ## Admin overview
 
-**Settings → Users** lists every guest account (grouped separately from full users) with its nickname, the campaign it's attached to, and who invited it. From there an admin can **convert a guest to a permanent user**: give it a username (and a password when password auth is enabled) and it keeps its campaign membership and character.
+**Settings → Users** lists every guest account (grouped separately from full users) with its nickname, the campaign it's attached to, and who invited it. From there an admin can **convert a guest to a permanent user**: give it a username (and a password when password auth is enabled) and it keeps its campaign membership and character. The password must meet the [password rules](/configuration/security#password-rules).

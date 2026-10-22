@@ -17,7 +17,18 @@ Replace `latest` with a specific tag to pin to a release:
 image: hunterreadca/grimoire:1.5.0
 ```
 
-Check [DockerHub](https://hub.docker.com/r/hunterreadca/grimoire/tags) for available tags.
+Check [Docker Hub](https://hub.docker.com/r/hunterreadca/grimoire/tags) for available tags.
+
+## Docker Hub or GitHub Container Registry
+
+Every release and `nightly` tag is published to both registries from the same build, so the images are identical:
+
+| Registry | Image |
+| --- | --- |
+| Docker Hub | `hunterreadca/grimoire:<tag>` |
+| GitHub Container Registry | `ghcr.io/hunter-read/grimoire:<tag>` |
+
+To switch, change the `image:` line in your compose file and run `docker compose pull && docker compose up -d`. Your data volume is unaffected.
 
 ## Image variants
 

@@ -109,8 +109,8 @@ services:
     environment:
       - LIBRARY_PATH=/library
       - DATA_PATH=/data
-      - WORKERS=2
-      - SECRET_KEY=replace-this-with-a-long-random-string
+      - WORKERS=1
+      - SECRET_KEY=<paste the generated value here>
     volumes:
       - /YOUR/LIBRARY/PATH:/library:ro
       # Or, if your PDFs already sit in one folder, mount it as books/ instead:
@@ -134,7 +134,11 @@ volumes:
   - /Users/YourName/Documents/grimoire/data:/data
 ```
 
-Replace the `SECRET_KEY` value with any long random string (you can mash your keyboard or use `openssl rand -hex 32`).
+Generate a random value of at least 32 characters, for example with `openssl rand -hex 32` or a password generator, and paste it in as `SECRET_KEY`. You can also delete the `SECRET_KEY` line: Grimoire then generates a key on first start and saves it in your data folder, so you stay signed in across restarts.
+
+::: warning Don't copy a key
+Never use a value from documentation or a forum post, or a placeholder like `change-me`. A known signing key would let anyone sign in as any user on your instance, so Grimoire refuses to start on values that have appeared in its own docs, including the `<paste the generated value here>` line above left as it is. See [the FAQ](/faq#grimoire-won-t-start-and-the-log-mentions-secret-key) if you hit that error.
+:::
 
 ## Step 4: Run Grimoire
 
@@ -152,6 +156,10 @@ The image ships a `HEALTHCHECK` that probes `GET /api/health`, so `docker ps` sh
 
 ::: info Image variants
 The default `latest` tag bundles the Tesseract OCR engine so scanned, image-only PDFs are searchable. For a smaller image without OCR, use the matching `-slim` tag (e.g. `hunterreadca/grimoire:slim`). See [OCR](/configuration/performance#ocr).
+:::
+
+::: info Docker Hub or GitHub
+Grimoire is published to both [Docker Hub](https://hub.docker.com/r/hunterreadca/grimoire) and the [GitHub Container Registry](https://github.com/hunter-read/grimoire/pkgs/container/grimoire), with the same images under the same tags. Either works - if you'd rather pull from GitHub, use `ghcr.io/hunter-read/grimoire:latest` as the `image:` instead. The [Compose Generator](/compose-generator) has a registry option for this.
 :::
 
 ## Step 5: Create your admin account
@@ -175,3 +183,6 @@ Grimoire will start indexing your library in the background. You can already bro
 
 **Windows: Docker says WSL 2 is not installed**
 - Open PowerShell as Administrator and run `wsl --install`, then restart.
+
+**The log says Grimoire is "staying root"**
+- Grimoire runs as an ordinary user, not root, and it only stays root when that user couldn't reach something. The log line names the folder. Set `PUID`/`PGID` to the folder's owner, or see [File ownership](/configuration/volumes#file-ownership).

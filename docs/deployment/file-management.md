@@ -98,8 +98,12 @@ again from the new one: page count, cover, and search text. An image-only PDF
 goes back into the OCR queue. Your own metadata is left alone. Bookmarks keep
 their page numbers, so check them if the new file's pages moved.
 
-A replace is refused while a scan or OCR run is going. Wait for it to finish, or
-stop it, and try again.
+Each replace queues its book for one background re-index, which reads the new
+text of every book replaced (or re-indexed from its book page) while it runs, so
+you can replace a batch of books one after another. A replace is refused while a
+library scan or an OCR run is going, and while the background re-index is
+reading that same book. Wait for it to finish, or stop it, and try again. A script can
+poll `GET /api/scan-status` until `running` is `false`.
 
 ## Managing files outside Grimoire
 
@@ -135,8 +139,8 @@ services:
     environment:
       - LIBRARY_PATH=/library
       - DATA_PATH=/data
-      - WORKERS=2
-      - SECRET_KEY=change-me
+      - WORKERS=1
+      - SECRET_KEY=<paste the generated value here>
     volumes:
       - /path/to/your/library:/library
       - /path/to/grimoire/data:/data

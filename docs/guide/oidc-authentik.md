@@ -54,6 +54,8 @@ explicit = "nsfw" in groups
 return {"permissions": {"viewNSFW": explicit}}
 ```
 
+This sends `viewNSFW` for every user, so anyone outside `nsfw` gets an explicit `false`. Keep it that way if you edit the script: a missing `viewNSFW` only denies explicit content to a new account, and an existing account keeps whatever it had, so removing someone from `nsfw` wouldn't take their access away. See [Permissions claim](/guide/oidc#permissions-claim).
+
 ## 3. Configure the provider
 
 In your Authentik OAuth2/OIDC provider:

@@ -28,6 +28,8 @@ A map's [OTFBM setup](./otfbm) makes a special kind of share link that serves th
 
 A password-protected link asks for the password on its share page before showing anything — not even the item's name. Once entered, that browser stays unlocked for 12 hours, and changing the password locks everyone out again.
 
+A link password needs at least 8 characters (an admin can change this with [`SHARE_LINK_PASSWORD_MIN_LENGTH`](/configuration/security#password-rules)), and commonly used passwords are refused. Wrong passwords are limited per address and per link, so guesses spread across many addresses still run out (`ACCOUNT_RATE_LIMIT`, 20 an hour by default).
+
 Tools that load the file URL directly — VTTs, OTFBM, Discord — can't enter a password, so a protected link only works on its share page. Leave the password empty for those.
 
 ## Taking a link down

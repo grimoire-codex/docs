@@ -12,6 +12,8 @@ With the server running, the API is self-documented via OpenAPI:
 | `http://localhost:9481/api/redoc` | ReDoc: clean, readable reference |
 | `http://localhost:9481/api/openapi.json` | Raw OpenAPI schema |
 
+These need a signed-in session by default (open them in a browser where you're signed in). Set [`API_DOCS`](/configuration/env-vars) to `public` to serve them to anyone, or `off` to turn them off.
+
 ---
 
 ## Authentication
@@ -23,12 +25,9 @@ All endpoints except `/api/auth/status`, `/api/auth/setup`, `/api/auth/login`, a
 Authorization: Bearer <token>
 ```
 
-**Query parameter** (required for browser-embedded images and file downloads):
-```
-?token=<token>
-```
+**Session cookie** (browser images and downloads): sign-in also sets an HttpOnly `grimoire_session` cookie, which authenticates `GET` requests. A token in the URL (`?token=`) is not accepted.
 
-Tokens are returned by `/api/auth/login` and expire after **30 days**.
+Access tokens are returned by `/api/auth/login` and expire after **30 minutes**; the app renews them from an HttpOnly refresh cookie.
 
 ### Roles
 
@@ -89,11 +88,22 @@ Each key has a name, an optional expiry (30, 90 or 365 days, or never), and a le
 
 You're only offered what your role can use. A player sees game systems as Read at most, since players can't edit them, and never sees admin-only areas like Logs or the file manager.
 
-A few things are **never available to a key**: signing in, managing API keys, and changing a credential or the account itself (password, deleting the account, OPDS and calendar feed tokens).
+A few things are **never available to a key**: signing in, managing API keys, and changing a credential or the account itself (password, deleting the account, OPDS and calendar feed tokens). Guest invite codes (creating, listing, regenerating and sharing them), the OIDC sign-in button icon, the add-on source settings (`PATCH /api/addons/settings`) and private source tokens (`/api/addons/sources/credential`) are session-only too.
+
+**Session-only fields.** Some routes a key can use take a few fields that only a signed-in session may set. Sent with a key they get a `403` naming the field; the rest of the route works as usual:
+
+- `POST /api/users` and `PATCH /api/users/:id`: `password`, the `admin` role, and (on `PATCH`) a changed `email`. Converting a guest to a user likewise.
+- `PATCH /api/users/me/preferences`: a changed `email`.
+- `PATCH /api/settings`: password sign-in, guest access, the login message, and every OIDC setting.
+- Approving an add-on's script, on install (`approve_script: true`) or afterwards (`script_approved: true`).
+
+Campaign responses never include a guest's invite code when the request uses a key.
+
+**Share links with a key.** Creating or changing a [share link](#share-links) with a key also needs the key to have **Read** on the item's own area - Books, Maps, Tokens, Audio or 3D models - besides **Share links: Read and write**.
 
 **Shown once.** The full key appears only when it's created or regenerated. Grimoire stores just a hash of it and afterwards shows only its first few characters. A lost key can't be recovered, only regenerated.
 
-**Errors.** An unknown or expired key gets `401`. A valid key without the permission a request needs gets `403`, with a message naming the permission and level it needs. A key also gets `403` once its owner loses API key access, or while `API_KEYS_ENABLED=false`. Too many wrong keys from one address get `429` (see [Security](/configuration/security)).
+**Errors.** An unknown or expired key gets `401`. A valid key without the permission a request needs gets `403`, with a message naming the permission and level it needs. A key also gets `403` once its owner loses API key access, or while `API_KEYS_ENABLED=false`. Once an address has sent too many wrong keys, further wrong keys from it get `429`; a working key is never refused (see [Security](/configuration/security#auth-rate-limiting)).
 
 **MCP.** With `MCP_ENABLED=true`, keys also authenticate the [MCP server](/guide/mcp) at `POST /mcp`. Each MCP tool, resource and prompt checks the permission it needs, and a key is only shown the ones it can use.
 
@@ -114,10 +124,10 @@ List each origin exactly (`scheme://host[:port]`), separated by commas. It's off
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/auth/status` | GET | None | Returns `{"initialized": bool}` |
+| `/api/auth/status` | GET | None | Returns `{initialized, password_min_length, share_link_password_min_length}`: whether first-run setup is done, and the minimum lengths for new account and share-link passwords |
 | `/api/auth/config` | GET | None | Public auth config for the login screen |
-| `/api/auth/setup` | POST | None | First-run admin account creation. Body: `{username, password}` |
-| `/api/auth/login` | POST | None | Authenticate. Body: `{username, password}`. Returns `{token, user}` |
+| `/api/auth/setup` | POST | None | First-run admin account creation. Body: `{username, password}`. The password must meet the [password rules](/configuration/security#password-rules) |
+| `/api/auth/login` | POST | None | Authenticate. Body: `{username, password}`. Returns `{token, user}`. Rate-limited per IP and per account; `429` once either is used up (see [Auth rate limiting](/configuration/security#auth-rate-limiting)) |
 | `/api/auth/me` | GET | any | Current user details |
 | `/api/auth/openid/login` | GET | None | Start OIDC login, redirects to IdP |
 | `/api/auth/openid/callback` | GET | None | OIDC callback |
@@ -130,11 +140,11 @@ List each origin exactly (`scheme://host[:port]`), separated by commas. It's off
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
 | `/api/users` | GET | admin | List all users |
-| `/api/users` | POST | admin | Create a user. Body: `{username, password, role?, email?}` |
+| `/api/users` | POST | admin | Create a user. Body: `{username, password, role?, email?}`. The password must meet the [password rules](/configuration/security#password-rules) |
 | `/api/users/:id` | PATCH | admin | Update `role`, `password`, `allow_explicit`, or `email` |
 | `/api/users/:id` | DELETE | admin | Delete a user |
-| `/api/users/me/preferences` | PATCH | any | Update own `display_name`, `allow_explicit`, or `email` |
-| `/api/users/me/password` | PATCH | any | Change own password. Body: `{current_password, new_password}` |
+| `/api/users/me/preferences` | PATCH | any | Update own `display_name`, `allow_explicit`, or `email`. While [OIDC](/guide/oidc) matches existing users by email, only an admin can change an email |
+| `/api/users/me/password` | PATCH | any | Change own password. Body: `{current_password, new_password}`. The new password must meet the [password rules](/configuration/security#password-rules) |
 | `/api/users/me` | DELETE | any | Delete own account |
 
 ---
@@ -239,7 +249,7 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | `/api/books/:id/file` | GET | any | Download/stream the file |
 | `/api/books/:id/thumbnail` | GET | any | WebP cover thumbnail |
 | `/api/books/:id/toc` | GET | any | PDF table of contents |
-| `/api/books/:id/page/:num` | GET | any | Render PDF page as WebP. Query: `width` (default 1200, max 3000) |
+| `/api/books/:id/page/:num` | GET | any | Render PDF page as WebP. Query: `width` (default 1200, 16-3000; outside that range is 422) |
 | `/api/books/:id/page/:num/text` | GET | any | Plain text of a page |
 | `/api/books/:id/page/:num/words` | GET | any | Word bounding boxes for text overlay |
 
@@ -254,7 +264,7 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | `/api/maps/:id` | GET | any | Map detail |
 | `/api/maps/:id` | PATCH | gm/admin | Update `description`, `tags`, `map_type`, `grid_size` |
 | `/api/maps/:id/file` | GET | any | Download/stream the original map file |
-| `/api/maps/:id/page/:n` | GET | any | Downscaled WebP render. Query: `width` (default 1600, max 3000) |
+| `/api/maps/:id/page/:n` | GET | any | Downscaled WebP render. Query: `width` (default 1600, 16-3000; outside that range is 422) |
 | `/api/maps/:id/vtt/image` | GET | any | Battlemap image decoded out of a `.uvtt`/`.dd2vtt` file |
 | `/api/maps/:id/vtt/data` | GET | any | Grid resolution and wall/portal/light counts from a Universal VTT file |
 | `/api/maps/:id/export.uvtt` | GET | any | Builds a Universal VTT file for a raster map: the image, the grid, and anything authored in the editor |
@@ -510,7 +520,7 @@ Sheets (schemas) and characters are stored **per user**, so any signed-in user â
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
 | `/api/characters/schemas` | GET | any | Installed sheets, each with a `character_count` |
-| `/api/characters/schemas` | POST | any | Install a pasted sheet. Body: `{text}` (JSON or YAML) or `{document}`, plus optional `layout` and `styles`. 400 names the problem if it does not validate |
+| `/api/characters/schemas` | POST | any | Install a pasted sheet. Body: `{text}` (JSON or YAML, without YAML aliases, at most 512 KB and 100 levels deep) or `{document}`, plus optional `layout` and `styles`. 400 names the problem if it does not validate |
 | `/api/characters/schemas/browse` | GET | any | The community sheet catalogue, each marked `installed` |
 | `/api/characters/schemas/install/:sheet_id` | POST | any | Install a sheet from the catalogue |
 | `/api/characters/schemas/:schema_id` | GET | any | One sheet with its validated `document` |
@@ -532,8 +542,9 @@ Sheets (schemas) and characters are stored **per user**, so any signed-in user â
 | `/api/characters/importers/:id` | DELETE | any | Remove an importer you installed |
 | `/api/characters/import/external` | POST | any | Build a character from another tool's export. Body: `{text, filename}` for a file or `{url}` for a link, plus optional `importer_id`, `campaign_id` and `inputs` (`{key: value}` answers to the importer's declared inputs, never stored). The importer is recognised automatically unless named; 409 when several claim it. A missing input answers 400 with `detail: {message, importer_id, needs_input}`. Installs the importer's sheet from the catalogue if you lack it. Returns the character plus `importer_id`, `importer_name` and `unmatched` (names kept as custom entries) |
 | `/api/characters/:id/portrait` | GET / POST / DELETE | read: owner or party; write: owner | The character's art (PNG, JPEG, WebP or GIF, 5 MB) |
+| `/api/characters/:id/images/:field` | GET / POST / DELETE | read: owner or party; write: owner | The picture a sheet's `image` field holds (same types and size). POST returns `{field, value}`; `value` is the stored file name, also the URL's `?v=` cache-buster |
 
-**Character fields:** `id`, `name`, `schema_ref`, `schema_name`, `system`, `schema_missing`, `campaign_id`, `campaign_name`, `status`, `portrait_path`, `portrait_version`, `owned`, `created_at`, `updated_at`, and on detail `data`, `computed`, `validators`, `entries`.
+**Character fields:** `id`, `name`, `schema_ref`, `schema_name`, `system`, `schema_missing`, `campaign_id`, `campaign_name`, `status`, `portrait_path`, `portrait_version`, `portrait_crop` (`{x, y, zoom}` - the focus point in percent and a 1-4 zoom; `null` is centred, and `PUT` with `{}` clears it), `owned`, `created_at`, `updated_at`, and on detail `data`, `computed`, `validators`, `entries`.
 
 **Campaigns.** A character can be placed in a campaign you own (a GM campaign or a personal one) or have joined â€” 403 otherwise, including for an invitation you have not accepted. Everyone at that table â€” the owner and accepted members â€” can then read the sheet; only its owner can change it (`owned` is `false` for anyone else). A player may have any number of characters in one campaign.
 
@@ -604,6 +615,8 @@ Public, revocable links to one book, map, token, audio track or 3D model - see [
 | `/api/share-links` | POST | Create a link. Body: `{resource_type, resource_id, label?, expires_in_days?, password?, variant?, cell?}`, where `resource_type` is `book`, `map`, `token`, `audio` or `model` and `expires_in_days: null` means never. `variant: "otfbm"` (maps only) serves the map resized as an [OTFBM](/guide/otfbm) background at `cell` px per square. Returns the link with `url` (the share page) and `file_url` (the raw file) |
 | `/api/share-links/permission` | GET | Whether you may create links, and whether that comes from your role or a per-user setting |
 | `/api/share-links/:id` | PATCH | Change the label, expiry or password (`password: null` removes it) |
+
+A new link password must be at least `SHARE_LINK_PASSWORD_MIN_LENGTH` characters (8 by default) and not a commonly used password.
 | `/api/share-links/:id/revoke` | POST | Stop a link working for good. It stays listed as revoked |
 | `/api/share-links/:id` | DELETE | Remove a link |
 | `/api/share-links/all` | GET | Every user's links *(admin only)* |
@@ -614,7 +627,7 @@ The public side needs no authentication at all - the token is the credential:
 | Endpoint | Method | Description |
 |---|---|---|
 | `/api/share/:token/meta` | GET | What the share page shows. For a password-protected link, only `password_required` and `unlocked` until it is unlocked |
-| `/api/share/:token/unlock` | POST | Body `{password}`. Unlocks the link in this browser for 12 hours |
+| `/api/share/:token/unlock` | POST | Body `{password}`. Unlocks the link in this browser for 12 hours. Wrong passwords are limited per IP and per link (`ACCOUNT_RATE_LIMIT`), and get `429` past either |
 | `/api/share/:token/:filename` | GET, HEAD | The item itself (`?download=1` for an attachment). The filename is ignored, and is there for tools that read a file's type from the URL |
 
 Every way a link can fail to work - unknown, expired, revoked, suspended, or the item gone - is the same `404`. Responses allow cross-origin reads (`Access-Control-Allow-Origin: *`), so VTTs such as Owlbear Rodeo can load them.

@@ -427,7 +427,29 @@ Changes take effect on the next scan. If you add a rule that matches a file Grim
 
 ## Rescanning
 
-After adding, removing, or reorganizing files, click **Rescan** at the top of any Settings page (admins) or go to **Settings → Maintenance → Rescan Library** to pick up the changes. You can also configure a scheduled rescan there.
+Grimoire [watches the library for changes](#watching-for-changes) by default, so files you add, remove, or reorganize show up by themselves a few seconds later. To rescan by hand, click **Rescan** at the top of any Settings page (admins) or go to **Settings → Maintenance → Rescan Library**. You can also configure a scheduled rescan there.
+
+### Watching for changes
+
+**Settings → Maintenance → Watch for Changes** rescans by itself whenever something changes in the library folder. It waits until the folder has been quiet for a few seconds, so a large copy is scanned once, when it has finished. A change inside one system or folder rescans only that folder; one that spans folders, or adds, renames, or removes a system folder, rescans the whole library. NAS thumbnail folders, `.DS_Store`, half-downloaded `.part` files, and the sidecars Grimoire writes itself are ignored.
+
+| Mode | How changes are noticed |
+|---|---|
+| **Automatic** (default) | File system events, except on a network share (NFS, SMB/CIFS, or a FUSE mount such as rclone or mergerfs), where it checks regularly instead. |
+| **File system events** | Instant and light, but the kernel only reports changes made on the machine Grimoire runs on. A change made from another computer straight to the share is missed. |
+| **Check regularly** | Looks through the whole library every two minutes. Works on any share, at the cost of reading every folder each time. |
+
+The section shows what the watcher is doing, and why if it cannot watch - most often the host's limit on watched folders (`fs.inotify.max_user_watches`), which you can raise or avoid by checking regularly. `LIBRARY_WATCH` and `LIBRARY_WATCH_MODE` pin both settings; see [environment variables](/configuration/env-vars#library-scanning).
+
+::: tip Prefer a schedule?
+On a slow NAS, or for a table that plays in the evening and would rather not share the server with a scan, turn watching off and set a **Scheduled Rescan** for a quiet hour instead.
+:::
+
+### Renamed and deleted folders
+
+Renaming a folder is recognised by the next full scan: books are matched by content and keep their tags, favorites, bookmarks, and reading progress. A renamed **system** folder keeps the same system - its description, cover, tags, campaigns, and access - under the new name, rather than leaving an empty one behind. Identical copies in a renamed folder are told apart by filename.
+
+Deleting a system's folder removes the system on the next full scan, unless a campaign is played in it or you gave it a name, description, or cover of your own. Files deleted from a system that is still there are marked missing rather than forgotten, since a share that was briefly unmounted looks the same; **Settings → Maintenance → Database Cleanup** removes them for good.
 
 ::: tip Scoped rescan
 For large libraries you don't have to rescan everything. Every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.

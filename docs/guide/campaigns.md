@@ -28,7 +28,7 @@ Sheets can be downloaded at any time, and re-uploading prompts a warning (with a
 
 Users can also set a **display name** in Account Settings that appears in place of their username across the app.
 
-For a live sheet that calculates its own values, use the [character builder](./characters) instead: put a character in the campaign and everyone at the table can read it. A player may keep several characters in one campaign, marking a fallen one **Dead** or **Retired** rather than deleting it.
+For a live sheet that calculates its own values, use the [character builder](./characters) instead: put a character in the campaign and everyone at the table can read it. The campaign's **Characters** card lists them under each player - the GM's own NPCs included - and **Add character** brings one of yours to the table. A player may keep several characters in one campaign, marking a fallen one **Dead** or **Retired** rather than deleting it; those fold away under the player's **past characters** so the card leads with who is being played now. See [Characters on the campaign page](./characters#on-the-campaign-page).
 
 ## Per-user campaign access
 
@@ -36,9 +36,9 @@ Each user has a **campaign access** toggle (admins manage it per user in **Setti
 
 - Prevents the user from creating campaigns, being added to new ones, and editing/linking resources.
 - Keeps their read access to campaigns they already own or belong to; in member lists they are flagged as **Access disabled**.
-- Locks any campaign they **own** to read-only for everyone (players keep view access, lose all edits) until the owner's access is restored.
+- Locks any campaign they **own** to read-only for everyone (players keep view access, lose all edits) until the owner's access is restored. No new wiki pages can be added to it, in the app or by an [AI assistant](/guide/mcp).
 
-When OIDC is configured, this flag can be driven by the provider's [permissions claim](/guide/oidc) (`campaignAccess`); a missing key leaves access enabled.
+When OIDC is configured, this flag can be driven by the provider's [permissions claim](/guide/oidc) (`campaignAccess`). A missing key leaves the account's current setting unchanged, and new accounts start with access enabled.
 
 ## Guest invites
 
@@ -65,7 +65,11 @@ GM-only. Export the whole wiki as a Markdown `.zip` (one file per page with YAML
 
 ## Resources
 
-Link books, maps, tokens, and audio, or upload campaign files (handouts, images, etc.) the GM keeps with the campaign. Each resource has a visibility:
+Link books, maps, tokens, audio, and models, or upload campaign files (handouts, images, etc.) the GM keeps with the campaign.
+
+**Link Resource** opens a picker that browses your library by folder, one type at a time. Tick items one by one, or tick a **folder** to take everything in it, subfolders included - the whole *Curse of Strahd* folder of maps in one click. Ticking it again clears it, and a folder that is only partly selected shows a dash. While you search, a folder's tick takes just the matching items. **Add all with tag…** adds everything carrying a tag. Sections hidden in **Settings** (maps, tokens, audio or models) don't appear in the picker.
+
+Each resource has a visibility:
 
 | Visibility | Who can see it |
 |---|---|

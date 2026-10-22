@@ -61,12 +61,16 @@ The assistant decides when to call these.
 | `get_campaign`       | Campaigns: Read     | A campaign's description, players, and an outline of its wiki, including dated session notes                    |
 | `read_wiki_page`     | Campaigns: Read     | One wiki page                                                                                                   |
 | `search_campaign_wiki` | Campaigns: Read   | The wiki pages that mention a name or phrase                                                                    |
-| `create_wiki_page`   | Campaigns: Write    | Adds a new wiki page, private to you unless you ask for it to be shared. Never changes existing pages           |
+| `create_wiki_page`   | Campaigns: Write    | Adds a new wiki page, private to you. Never changes existing pages                                              |
 | `add_bookmark`       | Personal: Write     | Bookmarks a page in your own bookmark list                                                                      |
 | `tag_books`          | Books: Write, GM+   | Adds tags to books; existing tags are kept                                                                      |
 
 The write tools only ever add things. Claude Code asks you before it runs any MCP tool, unless
 you have allowed that tool.
+
+A page an assistant writes is always private to you, and so is any page its `[[links]]` create.
+To show it to your table, open it in the campaign wiki and change who can see it there. A campaign
+that is archived, or whose GM has campaign access turned off, takes no new pages.
 
 ### Resources
 
@@ -104,7 +108,7 @@ Grimoire answers each `POST` with one JSON body and keeps no session, so it work
 reverse proxy that passes `POST` requests through. `GET` and `DELETE` on `/mcp` (a
 server-to-client stream and session teardown, both optional in the spec) return `405`.
 
-Supported protocol revisions: `2025-11-25`, `2025-06-18` and `2025-03-26`.
+The protocol is handled by the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk), so Grimoire speaks whatever revisions it supports: currently `2025-11-25`, `2025-06-18`, `2025-03-26` and `2024-11-05`.
 
 ## Troubleshooting
 
@@ -116,7 +120,11 @@ Supported protocol revisions: `2025-11-25`, `2025-06-18` and `2025-03-26`.
   you in Settings → Users.
 - **The assistant is missing a tool** - the key lacks the permission it needs (see the tables
   above), or, for `tag_books`, your account is a player.
+- **`403` "This host name isn't allowed for MCP"** - the assistant reaches Grimoire at an
+  address that isn't loopback or `BASE_URL`'s host, such as a LAN IP. Set `BASE_URL` to it, or
+  add it to `MCP_ALLOWED_HOSTS`. (This is what keeps a web page using DNS rebinding out.)
 - **`/mcp` returns the Grimoire web page, or `405` for `POST`** - `MCP_ENABLED` is not set.
+- **`406 Not Acceptable`** - the client's `Accept` header excludes `application/json`. MCP clients send `application/json, text/event-stream`; a script calling `/mcp` directly should send that, or `*/*`.
 
 ## See also
 

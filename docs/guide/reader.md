@@ -5,8 +5,9 @@ Grimoire renders PDF pages server-side as WebP images, keeping the viewer fast o
 ## Features
 
 - **Page-by-page navigation**: swipe or use arrow keys
-- **Pinch-to-zoom** on mobile
-- **Spread mode**: display two pages side-by-side (even/odd offset toggle)
+- **Zoom up to 800%**: toolbar buttons, `+`/`-`/`0`, Ctrl + scroll, or pinch on mobile. Past about 200% the part of the page you are looking at sharpens a moment after you stop moving, so small print stays crisp
+- **Zoom carries across pages**: turn the page while zoomed and you stay zoomed, in the same column, at the top of the next page (or the bottom of the previous one). A new book, a switch between Page and Spread, or the reset button returns to 100%
+- **Spread mode**: display two pages side-by-side (even/odd offset toggle). **Join pages**, under Spread in the **⋮** menu (or the **Join pages** button in the PDF map viewer), draws the two pages as one image with no gap between them - the way a map or illustration printed across both pages looks in the book. It is remembered per book and per map
 - **Table of contents**: jump directly to any chapter
 - **Bookmarks**: save page bookmarks or text-selection highlights, with inline highlight overlay
 - **Native PDF viewer**: switch to the browser's built-in PDF viewer any time via the toolbar
@@ -22,7 +23,7 @@ Open **⋮ → Export pages & cut-outs** (or press `e`). PDF maps have the same 
 Type the pages you want - `12-15, 20` - or tap a shortcut: **This page**, **This spread**, the table-of-contents **Section** you are in (handy for a character sheet at the back of a book), or **All**.
 
 - **PDF** keeps the text selectable and prints at full quality.
-- **PNG**, **JPEG** and **WebP** save one image per page at the resolution you choose (Screen 96 dpi, Standard 150 dpi, Print 300 dpi). The panel shows the pixel size you will get.
+- **PNG**, **JPEG** and **WebP** save one image per page at the resolution you choose (Screen 96 dpi, Standard 150 dpi, Print 300 dpi). The panel shows the pixel size you will get. One image export takes up to 100 pages and 250 megapixels in all - about 28 pages at Print, or 100 at Standard. For more, save as PDF or export in parts.
 - **Join facing pages into one image** turns a map printed across a spread into a single picture, paired the same way the reader pairs spreads.
 
 ### Cut out

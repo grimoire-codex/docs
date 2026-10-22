@@ -16,9 +16,9 @@ Reset the password directly in the database by running a one-liner inside the ru
 
 ```bash
 docker exec <container_name> python3 -c "
-from passlib.context import CryptContext
+from backend.password_hash import hash_password
 import sqlite3
-pwd = CryptContext(schemes=['bcrypt_sha256']).hash('<your_new_password>')
+pwd = hash_password('<your_new_password>')
 db = sqlite3.connect('/app/data/grimoire.db')
 db.execute(\"UPDATE users SET hashed_password = ? WHERE username = ?\", (pwd, '<your_username>'))
 db.commit()
@@ -30,6 +30,37 @@ print('Done')
 Replace `<container_name>`, `<your_new_password>`, and `<your_username>` with your values. The container name is typically `grimoire`.
 
 Alternatively, create a new admin account by [pre-seeding a users file](/configuration/users) and restarting the stack.
+
+---
+
+## Grimoire won't start and the log mentions `SECRET_KEY`
+
+You'll see something like this on startup:
+
+```
+SECRET_KEY is set to 'change-me', a placeholder published in Grimoire's own
+documentation - anyone could forge admin sessions on this instance.
+```
+
+`SECRET_KEY` is the key Grimoire uses to sign login sessions. Example compose files and older versions of these docs showed placeholder and example values (`change-me`, `replace-this-with-a-long-random-string`, and others), so those exact strings are public knowledge. Anyone who knows the key can sign in as any user, admins included, so Grimoire refuses to start on one instead of quietly running with forgeable logins. The same goes for a fill-in line left unedited, such as `<paste the generated value here>` - any value written in `<angle brackets>`.
+
+This most often hits people who copied an example compose file and never edited the `SECRET_KEY` line. There are two ways to fix it:
+
+**Let Grimoire manage the key (easiest).** Delete the `SECRET_KEY` line from your compose file and restart. Grimoire generates a random key on first start, saves it as `secret_key` in your data volume, and reuses it from then on.
+
+**Set your own.** Generate a private random value and paste it in:
+
+```bash
+openssl rand -hex 32
+```
+
+```yaml
+- SECRET_KEY=<paste the generated value here>
+```
+
+Set the key yourself if you run **more than one replica** and they don't share a data volume, since each would otherwise generate its own key and reject the others' sessions.
+
+Either way, everyone is signed out once when the key changes. Sign back in as usual; accounts, library and settings are untouched. A key shorter than 32 characters still starts, but logs a warning suggesting a longer one.
 
 ---
 

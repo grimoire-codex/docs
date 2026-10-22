@@ -233,6 +233,55 @@ python3 -m http.server 8000
 
 Then set the index URL to `http://localhost:8000/index.json` and hit Refresh.
 
+## Using a private repository
+
+A source can be a private repository - licensed or non-SRD content packs for
+your table, say. Give it an access token and Grimoire browses, installs and
+updates from it like any other source, update badges and **Update all**
+included.
+
+1. Add the repository's index URL under **Settings → Add-ons → Add-on Sources**.
+2. Click the key beside it, paste the token, and click **Save token**. The
+   source is marked **Private**.
+
+The token covers everything that source offers: add-ons, character sheets,
+content packs, themes and note templates.
+
+Grimoire sends the token **only to files inside that source** - the same site,
+under the folder holding its index. A private repository on GitHub does not
+hand its token to the public community repository, a redirect elsewhere drops
+it, and an add-on's lookups on other sites never carry it.
+
+The token is stored encrypted and never shown again; the dialog can only
+replace or remove it. Removing the source removes its token too.
+
+### GitHub
+
+Use the repository's raw URL, for example
+`https://raw.githubusercontent.com/our-table/packs/main/index.json`. Create a
+[fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
+with **Only select repositories** set to that one repository and **Contents**
+set to read-only. Fine-grained tokens usually expire, so replace yours before
+it does.
+
+### Gitea and Forgejo
+
+Use the API's raw URL, which serves the default branch:
+`https://git.example.org/api/v1/repos/our-table/packs/raw/index.json`. Create a
+token under **Settings → Applications** with read access to repositories.
+
+### Other hosts
+
+Any host that serves the repository's files at stable URLs works. If it expects
+the token under a different header - GitLab's `PRIVATE-TOKEN`, say - change
+**Header** in the dialog. By default the token is sent as
+`Authorization: Bearer <token>`; a token you type with its own scheme
+(`token abc123`) is sent as typed.
+
+To set tokens on the server instead, use
+[`ADDON_INDEX_CREDENTIALS`](/configuration/env-vars#add-ons). A token set there
+shows as read-only in the dialog.
+
 ## Writing your own
 
 The [add-ons repo](https://github.com/grimoire-codex/community-add-ons) has the

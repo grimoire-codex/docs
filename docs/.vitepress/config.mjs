@@ -34,6 +34,7 @@ export default defineConfig({
             { text: 'Library Structure', link: '/guide/library-structure' },
             { text: 'Tags', link: '/guide/tags' },
             { text: 'OPF Metadata', link: '/guide/opf-metadata' },
+            { text: 'Filename Rules', link: '/guide/filename-rules' },
           ],
         },
         {

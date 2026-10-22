@@ -31,7 +31,7 @@ UI to pick the changes up.
 | Backend | FastAPI (async Python 3.12) |
 | Database | SQLite with FTS5 full-text search |
 | PDF rendering | PyMuPDF → WebP |
-| Frontend | React 18, served by the FastAPI backend |
+| Frontend | React 19 and TypeScript, served by the FastAPI backend |
 | Optional cache | Valkey / Redis (page image cache) |
 | Auth | JWT + optional OpenID Connect |
 

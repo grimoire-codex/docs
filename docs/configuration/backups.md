@@ -15,8 +15,11 @@ grimoire-backup-20260821T140355Z.zip
 └── branding/          the uploaded OIDC sign-in button icon
 ```
 
-The database is copied using SQLite's online backup API rather than a plain file copy, so
-the snapshot is internally consistent even while Grimoire is running. Database writes are
+The database is copied using SQLite's `VACUUM INTO` rather than a plain file copy, so the
+snapshot is internally consistent even while Grimoire is running, and holds only live data:
+nothing deleted or overwritten comes along in the file's free space. OPDS, calendar and
+share-link tokens in it are hashed and encrypted with your `SECRET_KEY`, which is not part
+of the backup, so a stolen backup holds no working feed or share URL. Database writes are
 paused for the length of the snapshot. That is brief for a typical library, but not
 instant.
 
@@ -96,6 +99,11 @@ backups, so this is safe.
 Setting `BACKUP_DIR` (or the field in the UI) points them anywhere else, ideally a volume
 on a different physical disk. If you set it in the UI, Grimoire checks the directory is
 writable when you save, rather than letting the first scheduled run fail silently at 3am.
+
+The container hands a folder set with `BACKUP_DIR` to the user Grimoire
+[runs as](/configuration/volumes#file-ownership) on every start. A folder chosen in the UI is
+never re-owned: if that user can't write to it, the start-up log says so. Give it access on
+the host, or set `BACKUP_DIR` instead.
 
 With Docker, remember to mount the volume:
 

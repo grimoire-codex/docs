@@ -4,7 +4,7 @@
 
 On first startup Grimoire scans the library and indexes every PDF page for full-text search. This can take several minutes for large collections. The index is stored in the data volume and subsequent startups are fast.
 
-Use the **Rescan** button in the sidebar to pick up newly added files, or configure a scheduled rescan in **Settings → Maintenance**. For large libraries you can also rescan a single corner: every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.
+New files are picked up by themselves while the library is [watched for changes](/guide/library-structure#watching-for-changes), the default. Use the **Rescan** button in the sidebar to pick them up by hand, or configure a scheduled rescan in **Settings → Maintenance** - on a slow server you can turn watching off and scan at a quiet hour instead. For large libraries you can also rescan a single corner: every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.
 
 ### Very large images
 
@@ -83,16 +83,39 @@ By default, rendered pages are cached to disk under `DATA_PATH/page_cache/`. For
 
 ```yaml
 environment:
-  - VALKEY_URL=redis://valkey:6379/0
+  - VALKEY_URL=redis://:<valkey password>@valkey:6379/0
 ```
 
-See [Docker Compose examples](/deployment/docker-compose) for a complete compose setup with Valkey.
+Give Valkey a password (`--requirepass`) and put it in the URL as shown: besides pages it holds sign-in counters and single sign-on state. See [Docker Compose examples](/deployment/docker-compose) for a complete compose setup with Valkey.
+
+## Memory use
+
+Out of the box Grimoire runs one worker process and settles at roughly 250 MB once your library is scanned (earlier versions used about 550 MB). Reading adds to that for a while: rendering an illustrated page decodes its images at full size, which can take a few hundred MB while people are turning pages. Grimoire hands that memory back on its own, every `PAGE_RECLAIM_INTERVAL` page renders and again once nobody has viewed a page for `PAGE_IDLE_RELEASE` seconds (5 minutes by default), so it returns to its idle size after a session.
+
+- **`PAGE_RECLAIM_INTERVAL`** (default `10`) - lower it (e.g. `3`) to keep peaks down when several people read at once. It costs a few percent of render speed.
+- **`PAGE_IDLE_RELEASE`** (default `300`) - how long reading has to stop before open books are closed and their memory released. The first page after that reopens the book, which is quick.
+- **`OCR_CONCURRENCY`** - each parallel OCR job adds 50-250 MB while it runs (see [Speeding it up](#speeding-it-up)).
 
 ## Workers
 
-The `WORKERS` environment variable controls how many uvicorn worker processes run. More workers allow more concurrent requests but use more memory. 2–4 is typical for home use.
+`WORKERS` sets how many worker processes serve requests. The default is `1`, and it is the right choice for most servers: one worker serves many people at once on separate threads, and a single reader turns pages just as fast as with two. Each extra worker is a full second copy of the app and adds roughly 125-190 MB.
+
+Where a second worker pays off is several people turning pages that have never been viewed before, at the same moment. In testing with four people doing that on a 4-core host, one worker served 5.5 pages a second and two served 7.6 (1.9.0's two workers managed 4.5). On a 2-core host the gain was only about 10%. Pages someone has already viewed come from the cache and cost almost nothing either way.
+
+Raise it to `2` when **all** of these are true:
+
+- **Three or four people or more regularly read at the same time**, such as a whole table following along in the reader during a session.
+- **Page turns feel slow when they do**, and `docker stats` shows Grimoire at about 100% CPU (one full core) while the host has more cores idle. That is the sign one process is the bottleneck.
+- **The host has 4 or more CPU cores and about 200 MB of RAM to spare.**
+
+If page turns are slow but the CPU is not pinned at one core, another worker will not help: look at disk speed, or add [Valkey](#valkey-redis-page-cache) so pages people have already viewed load from memory. More workers than CPU cores never helps.
+
+When you run more than one worker, also set `VALKEY_URL`. Without it each worker keeps its own rendered-page cache, sign-in rate limits and library-scan progress, so the scan status in Settings can look stuck while a scan runs in the other worker.
 
 ```yaml
 environment:
-  - WORKERS=4
+  - WORKERS=2
+  - VALKEY_URL=redis://:<valkey password>@valkey:6379/0
 ```
+
+Grimoire does not add or remove workers on its own. Starting a worker takes a few seconds and 125-190 MB, so it would arrive after a burst of page turns had already passed, and the extra copy would split those per-worker caches mid-session.
