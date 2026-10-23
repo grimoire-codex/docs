@@ -47,7 +47,7 @@ X-API-Key: grim_...
 
 **Keys are personal.** Every key belongs to a user and acts **as that user**: their role, their campaigns, their favorites. The key's permissions can only narrow that; a key can never do more than its owner. If the owner's role changes, their keys follow. Keys are deleted with their owner.
 
-Create keys under **Settings → Account → Security → API Keys**. Admins always can. Anyone else can once an admin ticks **API keys** on their row in **Settings → Users** (off by default), or your [OIDC provider](/guide/oidc) grants the `apiKeys` permission; taking it away stops their existing keys working. Admins can see and revoke everyone's keys under **Settings → App Settings**. Guests never have keys.
+Create keys under **Settings → Connections → API Keys**. Admins always can. Anyone else can once an admin ticks **API keys** on their row in **Settings → People** (off by default), or your [OIDC provider](/guide/oidc) grants the `apiKeys` permission; taking it away stops their existing keys working. Admins can see and revoke everyone's keys under **Settings → Access & sharing → All API Keys**. Guests never have keys.
 
 Setting `API_KEYS_ENABLED=false` turns API keys off for the whole instance, admins included: keys stop working and the key menus disappear.
 

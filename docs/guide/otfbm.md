@@ -22,7 +22,7 @@ On a map's detail page, open the **⋮** menu and choose **Set up for OTFBM (Avr
 | **2. Create the share link** | Choose how long it lasts — *never* by default, since a play-by-post battle can run for weeks and OTFBM fetches the background every time it draws the map. A link you already made at the same square size is reused. |
 | **3. Copy the command** | Run it in Discord. |
 
-The link is an ordinary [share link](./sharing) that serves the resized picture rather than the original. It's listed under **Settings → Account → Sharing** as "OTFBM background", and revoking it there takes the background down. Nothing is written to your library.
+The link is an ordinary [share link](./sharing) that serves the resized picture rather than the original. It's listed under **Settings → Connections → Share links** as "OTFBM background", and revoking it there takes the background down. Nothing is written to your library.
 
 ::: tip Not reachable from the internet?
 OTFBM fetches the background from your Grimoire server, so it has to be reachable from the internet. If it isn't, **download the resized image** from the same dialog and host it somewhere OTFBM can reach — see OTFBM's list of [image hosts that work](https://docs.otfbm.io/#/pages/image-hosts) (GitHub, Flickr and Pinterest originals do; Discord and Imgur don't) — then put that URL after `-bg` yourself. The download is a JPEG, or a PNG if the map has transparent areas; OTFBM doesn't read WebP.

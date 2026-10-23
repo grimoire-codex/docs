@@ -49,7 +49,7 @@ books/
 
 OPF metadata is applied only when a book is **first indexed**. Edits made via the web UI are not overwritten on subsequent rescans.
 
-To re-apply updated OPF metadata to an already-indexed book, delete the book record in Grimoire (**Settings → Maintenance → Cleanup Missing**) and trigger a rescan.
+To re-apply updated OPF metadata to an already-indexed book, delete the book record in Grimoire (**Settings → Library → Danger zone → Database Cleanup**) and trigger a rescan.
 
 ## Writing metadata back out
 
@@ -59,7 +59,7 @@ container with a fresh `DATA_PATH`, and the metadata travels with the files
 instead of living only in Grimoire's database. Calibre, Jellyfin, Kodi, and a
 plain file manager can all read it.
 
-Turn it on in **Settings → Maintenance → Metadata Sidecars** and tick the formats
+Turn it on in **Settings → Metadata → Sidecar files** and tick the formats
 you want (`.opf`, `.nfo`, `.json`). It is off by default.
 
 Three things trigger a write:

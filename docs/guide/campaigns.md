@@ -26,13 +26,13 @@ A player can also **create a sheet from a template** (duplicating a form-fillabl
 
 Sheets can be downloaded at any time, and re-uploading prompts a warning (with an option to download the current version first) before the previous one is replaced.
 
-Users can also set a **display name** in Account Settings that appears in place of their username across the app.
+Users can also set a **display name** in **Settings → Account** that appears in place of their username across the app.
 
 For a live sheet that calculates its own values, use the [character builder](./characters) instead: put a character in the campaign and everyone at the table can read it. The campaign's **Characters** card lists them under each player - the GM's own NPCs included - and **Add character** brings one of yours to the table. A player may keep several characters in one campaign, marking a fallen one **Dead** or **Retired** rather than deleting it; those fold away under the player's **past characters** so the card leads with who is being played now. See [Characters on the campaign page](./characters#on-the-campaign-page).
 
 ## Per-user campaign access
 
-Each user has a **campaign access** toggle (admins manage it per user in **Settings → Users**; enabled by default). Disabling it does **not** delete any existing campaigns. It only:
+Each user has a **campaign access** toggle (admins manage it per user in **Settings → People**; enabled by default). Disabling it does **not** delete any existing campaigns. It only:
 
 - Prevents the user from creating campaigns, being added to new ones, and editing/linking resources.
 - Keeps their read access to campaigns they already own or belong to; in member lists they are flagged as **Access disabled**.
@@ -67,7 +67,7 @@ GM-only. Export the whole wiki as a Markdown `.zip` (one file per page with YAML
 
 Link books, maps, tokens, audio, and models, or upload campaign files (handouts, images, etc.) the GM keeps with the campaign.
 
-**Link Resource** opens a picker that browses your library by folder, one type at a time. Tick items one by one, or tick a **folder** to take everything in it, subfolders included - the whole *Curse of Strahd* folder of maps in one click. Ticking it again clears it, and a folder that is only partly selected shows a dash. While you search, a folder's tick takes just the matching items. **Add all with tag…** adds everything carrying a tag. Sections hidden in **Settings** (maps, tokens, audio or models) don't appear in the picker.
+**Link Resource** opens a picker that browses your library by folder, one type at a time. Tick items one by one, or tick a **folder** to take everything in it, subfolders included - the whole *Curse of Strahd* folder of maps in one click. Ticking it again clears it, and a folder that is only partly selected shows a dash. While you search, a folder's tick takes just the matching items. **Add all with tag…** adds everything carrying a tag. Sections hidden in **Settings → Sidebar** (maps, tokens, audio or models) don't appear in the picker.
 
 Each resource has a visibility:
 
@@ -79,7 +79,7 @@ Each resource has a visibility:
 
 Resources group under their type by default, but the GM can create custom categories (e.g. *Player Handouts*), drag items between categories and reorder them, and delete categories (keeping items uncategorized or unlinking them). Each group can be **collapsed or expanded** (remembered per campaign), and the GM can **reorder all the groups** (custom categories and the built-in Books / Maps / Tokens / Audio / Files groups together) from the category manager.
 
-Uploaded campaign files live in the data directory, separate from the library. Admins can disable these uploads app-wide or cap them by per-file and per-campaign size in **Settings → App** (admins themselves are exempt).
+Uploaded campaign files live in the data directory, separate from the library. Admins can disable these uploads app-wide or cap them by per-file and per-campaign size in **Settings → Access & sharing → Campaign Uploads** (admins themselves are exempt).
 
 ## Session scheduling
 

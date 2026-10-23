@@ -1,7 +1,7 @@
 # Backups
 
 Grimoire can take a snapshot of its own database and the files you have uploaded through
-it, on demand or on a schedule. You'll find it under **Settings → Maintenance → Backups**.
+it, on demand or on a schedule. You'll find it under **Settings → Backups**.
 
 Each backup is a single timestamped `.zip`:
 

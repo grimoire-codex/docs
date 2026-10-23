@@ -4,15 +4,15 @@ Grimoire supports authentication via any OpenID Connect–compliant identity pro
 
 ## Configure
 
-Open **Settings → Authentication** as an admin:
+Open **Settings → Sign-in** as an admin:
 
-1. Set the **Issuer URL** and click **Autopopulate**: Grimoire fetches the IdP's `.well-known/openid-configuration` and fills in the endpoint URLs. You can also paste the full discovery document URL directly.
-2. Paste the **Client ID** and **Client Secret** from your IdP. The secret is stored encrypted under `SECRET_KEY`, so a backup doesn't carry it; if `SECRET_KEY` changes you'll need to enter it again. Setting `OIDC_CLIENT_SECRET` in the environment instead keeps it out of the database and is recommended.
-3. Register the displayed **Redirect URI** with your IdP. Set `BASE_URL` so the host reflects your public origin:
+1. Tick **Enable OpenID Connect**. The fields below only appear once it is on; the login page shows the button once the rest is filled in.
+2. Set the **Issuer URL** and click **Autopopulate**: Grimoire fetches the IdP's `.well-known/openid-configuration` and fills in the endpoint URLs. You can also paste the full discovery document URL directly.
+3. Paste the **Client ID** and **Client Secret** from your IdP. The secret is stored encrypted under `SECRET_KEY`, so a backup doesn't carry it; if `SECRET_KEY` changes you'll need to enter it again. Setting `OIDC_CLIENT_SECRET` in the environment instead keeps it out of the database and is recommended.
+4. Register the displayed **Redirect URI** with your IdP. Set `BASE_URL` so the host reflects your public origin:
    ```
    https://<your.server.com>/api/auth/openid/callback
    ```
-4. Enable **OpenID Connect**.
 
 ## Optional settings
 
@@ -55,7 +55,7 @@ Send every key you care about on every login, with an explicit `true` or `false`
 
 Many providers ask apps to use their standard "Sign in with …" button, and a familiar button is reassuring on a login page your users haven't seen before. Grimoire doesn't ship any provider's buttons or logos. Instead you style the one OIDC button yourself, so any provider can be matched without Grimoire having to know about it.
 
-Under **Settings → Authentication → Button Appearance**:
+Under **Settings → Sign-in → Button Appearance**:
 
 | Setting | Description |
 |---|---|
@@ -92,6 +92,7 @@ Any OIDC setting can be pinned via an environment variable (e.g. `OIDC_ENABLED=t
 ## Notes
 
 - First-run setup always uses username + password. The OIDC button appears only after the IdP is fully configured.
+- **Password Authentication** in **Settings → Sign-in** can only be turned off once OpenID Connect is configured, and OpenID Connect can't be turned off while password sign-in is off - so there is always a way in. `ALLOW_PASSWORD_AUTHENTICATION` pins it regardless.
 - Logging out suppresses the next auto-launch so you don't immediately bounce back to the IdP.
 - A sign-in has to finish in the browser that started it, within 10 minutes. If the provider sends you back to Grimoire in a different browser or app (some mobile mail apps open links in their own browser), you'll see "sign-in was started in another browser"; start again from the login page there.
 - The login button text is configurable (e.g. "Sign in with Acme SSO") via the `OIDC_BUTTON_TEXT` env var or in-app setting, and so is its look - see [Style the sign-in button](#style-the-sign-in-button).

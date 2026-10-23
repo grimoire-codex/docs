@@ -18,8 +18,8 @@ allows and what changes if you prefer a read-only library.
 
 ## The file manager
 
-Open it from the **File manager** button at the top of any Settings page, or at
-**Settings → Maintenance → Open file manager**. It is a folder tree
+Open it from the **File manager** button at the top of any Server settings page, or at
+**Settings → Library → Library tools → Open file manager**. It is a folder tree
 built for bulk reorganization rather than a plain file listing.
 
 - **Expand folders in place** so a file and its destination are visible at once.
@@ -112,7 +112,7 @@ network share, or a companion container. This is also how you work when the
 library is mounted read-only.
 
 After adding files with an external tool, trigger a **Rescan** in Grimoire
-(sidebar or **Settings → Maintenance**) to pick up the new content.
+(sidebar or **Settings → Library**) to pick up the new content.
 
 ## Calibre
 

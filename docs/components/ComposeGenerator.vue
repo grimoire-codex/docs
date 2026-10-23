@@ -125,7 +125,7 @@
       <h2>Authentication <span class="cg-hint optional">(optional)</span></h2>
       <p class="cg-desc">
         These pin auth behaviour via environment variables, overriding the in-app toggles (which then show read-only).
-        Leave them alone to manage everything from <strong>Settings → Authentication</strong> in the app.
+        Leave them alone to manage everything from <strong>Settings → Sign-in</strong> in the app.
       </p>
       <div class="cg-toggles">
         <label class="cg-toggle">

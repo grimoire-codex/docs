@@ -14,8 +14,8 @@
 | `LIBRARY_PATH` | `/app/library` | Path to the library directory inside the container. |
 | `DATA_PATH` | `/app/data` | Path for the database, thumbnails, and search cache inside the container. |
 | `BASE_URL` | `http://localhost:9481` | Public base URL of this instance. Set to your external URL when running behind a reverse proxy. An `https://` value marks every sign-in cookie HTTPS-only (without it, a cookie is marked so only when its request arrived over HTTPS or through a trusted proxy reporting `X-Forwarded-Proto: https`). Also used for OPDS feed links, calendar links and OIDC redirect URIs. |
-| `LOG_LEVEL` | `info` | Console log verbosity: `debug`, `info`, `warning`, `error`, `critical`. The in-app Logs tab always captures `debug`-level entries regardless of this setting. |
-| `TZ` | `UTC` | Timezone for all log timestamps (console output and the in-app Logs tab). Use an IANA zone name such as `America/Toronto` or `Europe/Berlin`. Defaults to UTC when unset; an unknown zone name logs a warning and uses UTC. |
+| `LOG_LEVEL` | `info` | Console log verbosity: `debug`, `info`, `warning`, `error`, `critical`. The in-app log (**Settings → Logs**) always captures `debug`-level entries regardless of this setting. |
+| `TZ` | `UTC` | Timezone for all log timestamps (console output and the in-app log under **Settings → Logs**). Use an IANA zone name such as `America/Toronto` or `Europe/Berlin`. Defaults to UTC when unset; an unknown zone name logs a warning and uses UTC. |
 | `PUID` / `PGID` | _owner of the library_ | User and group ids Grimoire runs as inside the container. Unset, it runs as the owner of the mounted library, then of the data folder, then `1000:1000`, and stays root only if that user couldn't reach something root could. Set them (e.g. `99`/`100` on Unraid) to choose; `PUID=0` keeps root. Ignored when the container is started with `--user`. See [File ownership](/configuration/volumes#file-ownership). |
 | `UMASK` | _inherited_ | Octal umask applied to everything Grimoire writes: uploaded files, exported sidecars, thumbnails, and the database. `022` gives `rw-r--r--`, `002` group-writable, `000` `rw-rw-rw-` (what Unraid setups usually want). Useful where you cannot set the process umask yourself, such as Kubernetes. `GRIMOIRE_UMASK` is accepted as an alias. Left unset, Grimoire keeps whatever umask it inherited; an unparseable value is ignored with a warning rather than guessed at. |
 
@@ -32,7 +32,7 @@
 
 ## Grimoire Codex DB
 
-Grimoire Codex DB is off and hidden unless `GRIMOIRE_CODEX_DB_API_TOKEN` is set. The other variables pin a setting from **Settings → Add-ons → Grimoire Codex DB** and show it read-only there. See [Grimoire Codex DB](/guide/codex).
+Grimoire Codex DB is off and hidden unless `GRIMOIRE_CODEX_DB_API_TOKEN` is set. The other variables pin a setting from **Settings → Metadata → Grimoire Codex DB** and show it read-only there. See [Grimoire Codex DB](/guide/codex).
 
 | Variable | Description |
 |---|---|
@@ -48,7 +48,7 @@ Grimoire Codex DB is off and hidden unless `GRIMOIRE_CODEX_DB_API_TOKEN` is set.
 
 ## Backups
 
-All four are configurable in the UI under **Settings → Maintenance → Backups**. Setting one here pins it: the value wins and the field is read-only in Settings. See [Backups](/configuration/backups).
+All four are configurable in the UI under **Settings → Backups**. Setting one here pins it: the value wins and the field is read-only in Settings. See [Backups](/configuration/backups).
 
 | Variable | Default | Description |
 |---|---|---|
@@ -63,8 +63,8 @@ Backups cover the database and the files you uploaded through Grimoire, but **no
 
 | Variable | Description |
 |---|---|
-| `DISABLE_FOLDER_CATEGORY_INFERENCE` | `true` or `false`. When set, pins folder-name category inference on or off, overriding the in-app toggle (which is shown read-only). When `true`, books are not auto-assigned a category from their folder names and fall back to `uncategorized`. Leave unset to control it from **Settings → Maintenance**. To disable inference for a single game system only, drop an empty `.no-auto-category` file at that system's folder root. |
-| `LIBRARY_WATCH` | `true` or `false`. Pins whether Grimoire [watches the library for changes](/guide/library-structure#watching-for-changes) and rescans by itself, overriding the toggle in **Settings → Maintenance** (shown read-only). Unset, the toggle applies, and it is on by default. |
+| `DISABLE_FOLDER_CATEGORY_INFERENCE` | `true` or `false`. When set, pins folder-name category inference on or off, overriding the in-app toggle (which is shown read-only). When `true`, books are not auto-assigned a category from their folder names and fall back to `uncategorized`. Leave unset to control it from **Settings → Library → Files & folders**. To disable inference for a single game system only, drop an empty `.no-auto-category` file at that system's folder root. |
+| `LIBRARY_WATCH` | `true` or `false`. Pins whether Grimoire [watches the library for changes](/guide/library-structure#watching-for-changes) and rescans by itself, overriding the toggle in **Settings → Library → Scanning** (shown read-only). Unset, the toggle applies, and it is on by default. |
 | `LIBRARY_WATCH_MODE` | `auto`, `events`, or `poll`: how changes are noticed. `events` uses the operating system's file notifications - instant, but they only cover changes made on the machine Grimoire runs on. `poll` looks through the library every `LIBRARY_WATCH_POLL_INTERVAL` seconds and works on any network share. `auto` (the default) polls on NFS, SMB/CIFS and FUSE mounts and uses events elsewhere. |
 | `LIBRARY_WATCH_DELAY` | Default `10`. Seconds the library has to stay quiet after a change before it is scanned, so a folder still being copied is scanned once, when it is done. A library that never goes quiet is still scanned five minutes after the first change. |
 | `LIBRARY_WATCH_POLL_INTERVAL` | Default `120`, minimum `5`. In poll mode, seconds between checks. Each check lists every folder and reads every file's size and date, so raise it for a large library on a slow share. |
@@ -96,10 +96,10 @@ Image-only PDFs (scanned books with no embedded text) can be run through the bun
 | Variable | Description |
 |---|---|
 | `ALLOW_PASSWORD_AUTHENTICATION` | `true` or `false`. Pins password authentication on or off, overriding the in-app toggle (which is shown read-only). First-run admin setup always requires a password regardless of this value. |
-| `API_KEYS_ENABLED` | Set to `false` to turn [API keys](/api#api-keys) off for the whole instance, admins included: existing keys stop working and the key menus disappear. On by default. Which users may hold keys is set per user in Settings → Users. |
+| `API_KEYS_ENABLED` | Set to `false` to turn [API keys](/api#api-keys) off for the whole instance, admins included: existing keys stop working and the key menus disappear. On by default. Which users may hold keys is set per user in Settings → People. |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated origins, e.g. `https://foundry.example.com`, whose web pages may call the API from the browser: a Foundry VTT module, a browser extension, a dashboard. Unset by default, which sends no CORS headers. Entries must be exact origins (`scheme://host[:port]`); a wildcard or a path is ignored with a warning. Server-side tools like Homepage don't need it. See [API → Calling the API from a browser](/api#calling-the-api-from-a-browser). |
 | `GUEST_ACCESS_ENABLED` | `true` or `false`. Pins guest invite codes on or off, overriding the in-app toggle (shown read-only). Off by default. See [Guest Access](/guide/guest-access). |
-| `SHARE_LINKS_ENABLED` | Set to `false` to turn [share links](/guide/sharing) off for the whole instance: every existing link stops working and the Share buttons disappear. The links are kept, so turning it back on restores them. On by default. Who may create links is set in Settings → Users. |
+| `SHARE_LINKS_ENABLED` | Set to `false` to turn [share links](/guide/sharing) off for the whole instance: every existing link stops working and the Share buttons disappear. The links are kept, so turning it back on restores them. On by default. Who may create links is set by role in Settings → Access & sharing and per user in Settings → People. |
 
 ## Security
 
@@ -117,7 +117,7 @@ Rate limiting on the credential-checking endpoints (per IP, per account and per 
 
 ## OIDC
 
-Each OIDC setting can be pinned via environment variable. Pinned values are shown read-only in **Settings → Authentication**.
+Each OIDC setting can be pinned via environment variable. Pinned values are shown read-only in **Settings → Sign-in**.
 
 | Variable | Description |
 |---|---|

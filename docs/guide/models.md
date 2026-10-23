@@ -46,7 +46,7 @@ Previews are drawn in the model's **print orientation**: Z up, the way it sits o
 
 Rendering cost tracks the triangle count — a couple of seconds for a typical figure, longer for a photogrammetry scan. The mesh is streamed rather than loaded into memory, so even a 14-million-triangle model renders in a flat few dozen megabytes. Models up to 20 million triangles get a preview.
 
-Only the heaviest meshes are **queued rather than rendered during the scan**, the same bargain [OCR](/guide/ocr) strikes for scanned books: the library walk finishes at full speed, and those previews are drawn afterwards in a **Rendering model previews** phase you can watch in **Settings → Maintenance**. A stop or a restart leaves the rest queued, and they resume next time.
+Only the heaviest meshes are **queued rather than rendered during the scan**, the same bargain [OCR](/guide/ocr) strikes for scanned books: the library walk finishes at full speed, and those previews are drawn afterwards in a **Rendering model previews** phase you can watch in **Settings → Library → Scanning**. A stop or a restart leaves the rest queued, and they resume next time.
 
 ## Viewing a model
 

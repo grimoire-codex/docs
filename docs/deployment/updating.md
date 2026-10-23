@@ -42,5 +42,5 @@ Your data volume (database, thumbnails, search index, user accounts) is stored s
 
 ## After updating
 
-- If the update includes new library scanning logic, trigger a **Rescan** from **Settings → Maintenance** to pick up any new metadata.
+- If the update includes new library scanning logic, trigger a **Rescan** from **Settings → Library** to pick up any new metadata.
 - If you moved from a `-slim` image to the OCR-capable image (or set `OCR_ENABLED=true`), previously image-only books are automatically re-queued for OCR on the next startup scan.

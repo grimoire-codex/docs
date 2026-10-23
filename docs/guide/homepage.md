@@ -7,8 +7,8 @@ which shows your library counts on your dashboard without logging in.
 
 ## 1. Create an API key
 
-1. Sign in to Grimoire. Use an **admin** account if the widget should count the whole library: a key counts what its owner can see. Other users need an admin to grant them API keys first (**Settings → Users**).
-2. Go to **Settings → Account**, open **Security**, and under **API Keys** click **Create API key**.
+1. Sign in to Grimoire. Use an **admin** account if the widget should count the whole library: a key counts what its owner can see. Other users need an admin to grant them API keys first (**Settings → People**).
+2. Go to **Settings → Connections**, and under **API Keys** click **Create API key**.
 3. Give it a name, such as `Homepage widget`, and pick an expiration.
 4. Set **Statistics** to **Read**. Leave everything else at **No access**.
 5. Click **Create key**, then **copy the key**.
@@ -124,7 +124,7 @@ to you, for example swap in `game_systems`, `audio`, `indexed_books`, or
 - **401 Unauthorized**: the key is wrong, has expired, was revoked or
   regenerated, or the header name isn't exactly `X-API-Key`.
 - **403 Forbidden**: the key is valid but lacks **Statistics: Read** (edit it
-  under **Settings → Account → API Keys**), its owner no longer has API key
+  under **Settings → Connections → API Keys**), its owner no longer has API key
   access, or API keys are turned off for the instance (`API_KEYS_ENABLED=false`).
 - **429 Too Many Requests**: too many *wrong* keys were sent from Homepage's
   address. Fix the key and wait a minute.

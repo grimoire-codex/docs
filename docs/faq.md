@@ -99,7 +99,7 @@ A mount that doesn't match `LIBRARY_PATH` scans nothing.
 :::
 
 ::: info
-**Cleanup missing** removes database records for files that can't be found at their expected paths. If you moved files before fixing the mount, those records were removed; re-mounting correctly and rescanning will re-add everything.
+**Database Cleanup** (**Settings → Library → Danger zone**) removes database records for files that can't be found at their expected paths. If you moved files before fixing the mount, those records were removed; re-mounting correctly and rescanning will re-add everything. Cleanup now refuses to run while the library folder is missing or empty, so a mount that isn't there at all can no longer wipe the library this way.
 :::
 
 ---

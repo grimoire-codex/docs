@@ -14,7 +14,7 @@ OCR runs quietly in the background, so it never holds up the rest of your librar
 
 Each page has a time budget (`OCR_PAGE_TIMEOUT`, default 120 seconds). A page that runs over it is skipped so one bad page can't stall a book forever — the book still finishes, but the skipped pages aren't searchable and it's badged **OCR 14/206** rather than **OCR**. On slow hardware this can affect a lot of pages; see [Pages that get skipped](#pages-that-get-skipped).
 
-You can watch the OCR queue drain under an **OCR** phase in the scan status (**Settings → Maintenance**), which shows a progress bar and the book currently being processed.
+You can watch the OCR queue drain under an **OCR** phase in the scan status (**Settings → Library → Scanning**), which shows a progress bar and the book currently being processed.
 
 Even with a big collection of scanned books, only the OCR queue is affected: the rest of your library stays fully available and searchable while OCR works through the backlog.
 

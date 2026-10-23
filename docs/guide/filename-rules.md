@@ -5,7 +5,7 @@ If you name your files carefully, Grimoire can use that. Filename rules teach it
 - **Folder naming patterns** describe how the books in a folder are named. Grimoire reads each new book's title (and publisher, version, year, ...) out of its filename, and can rename existing files to match - or move them from an old scheme onto a new one.
 - **Variant filename rules** are your library's own markers for variants - `GL_` for a gridless map, `-pf` for a printer-friendly PDF - so duplicate detection pre-fills them the way it already does for `nogrid` or `printer friendly`.
 
-Both live under **Settings → Metadata** and are admin only. Files are never renamed unless you ask.
+Both live under **Settings → Library → Files & folders** and are admin only. Files are never renamed unless you ask.
 
 ## Folder naming patterns
 

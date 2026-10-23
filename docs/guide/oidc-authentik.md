@@ -68,17 +68,17 @@ In your Authentik OAuth2/OIDC provider:
 
 ## 4. Configure Grimoire
 
-In **Settings → Authentication**:
+In **Settings → Sign-in**:
 
-1. Set **Issuer URL** to your Authentik application's issuer (e.g. `https://authentik.example.com/application/o/<app-slug>/`) and click **Autopopulate**.
+1. Tick **Enable OpenID Connect** - the rest of the fields appear once it is on.
+2. Set **Issuer URL** to your Authentik application's issuer (e.g. `https://authentik.example.com/application/o/<app-slug>/`) and click **Autopopulate**.
 
    ::: warning Token issuer mismatch
    Authentik's token issuer often differs from the provider URL. If login fails with an issuer mismatch, decode a token and copy the `iss` value into the **Token Issuer** field.
    :::
 
-2. Paste your **Client ID** and **Client Secret**.
-3. Register the displayed **Redirect URI** in your Authentik provider.
-4. Set **Groups Claim** to `groups`.
-5. Set **Advanced Permissions Claim** to `permissions`.
-6. Enable **Auto-register** if you want accounts created automatically on first login.
-7. Enable **OpenID Connect**.
+3. Paste your **Client ID** and **Client Secret**.
+4. Register the displayed **Redirect URI** in your Authentik provider.
+5. Set **Groups Claim** to `groups`.
+6. Set **Advanced Permissions Claim** to `permissions`.
+7. Enable **Auto-register** if you want accounts created automatically on first login.

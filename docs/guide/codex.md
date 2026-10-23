@@ -17,7 +17,7 @@ You can use it to:
 - **Link your records.** Applying a Grimoire Codex DB result also links the book or system to
   its Grimoire Codex DB record, and the editor then shows a link to that record.
 - **Give back.** GMs and admins can add a book or system to Grimoire Codex DB, or
-  send corrections to the linked record.
+  send what differs to the linked record, with the cover and where the data came from.
 
 ## Turning it on
 
@@ -31,7 +31,7 @@ You can use it to:
      - GRIMOIRE_CODEX_DB_API_TOKEN=cdx_...
    ```
 
-3. Restart Grimoire. **Settings → Add-ons → Grimoire Codex DB** now appears; use
+3. Restart Grimoire. **Settings → Metadata → Grimoire Codex DB** now appears; use
    **Test connection** to check the token.
 4. **Recommended:** turn on **Send file hashes when looking up books** there, or set
    `GRIMOIRE_CODEX_DB_SEND_HASHES=true`. See [Privacy](#privacy) for what it
@@ -65,13 +65,32 @@ describe your copy of the file rather than the book.
 This is open to GMs and admins. The Grimoire Codex DB section of the editor, just above
 **Save**, offers:
 
-- **Add to Grimoire Codex DB**, for a record that isn't linked yet. It asks where the
-  information comes from, because reviewers need to know. Link the game system
-  first: Grimoire Codex DB needs to know which system a book belongs to.
-- **Send corrections**, for a linked record. Tick only the fields you want Grimoire Codex DB
-  to take from your library. Grimoire Codex DB updates just those fields and leaves the rest
-  of its record alone.
+- **Add to Grimoire Codex DB**, for a record that isn't linked yet.
+- **Send corrections**, for a linked record.
 - **Unlink**, which forgets the link in Grimoire only. Nothing changes in Grimoire Codex DB.
+
+Both send buttons open the same form, which compares your record with Grimoire Codex DB
+first and ticks what is worth sending, so most of the time you just press **Send**:
+
+- **Fields.** Anything Grimoire Codex DB is missing, and anything that differs, with both
+  values shown side by side. Fields that already match are folded away. A field you have
+  left empty is never sent, so it can't wipe out Grimoire Codex DB's value. The form
+  compares what is saved, so save your edits first.
+- **Cover.** A book sends its first page, sharper than the library thumbnail; a system
+  sends its cover art. It is ticked when Grimoire Codex DB has no cover. If it has a
+  different one, you can still tick yours, but it isn't ticked for you.
+- **Source.** Pick the scraper add-on the data came from (TTRPG Wiki, DriveThruRPG and
+  so on), or paste another link. If the record already links to that site, the scraper
+  is picked and its page filled in for you. Reviewers see the link, and for a scraper the
+  description and tags are credited to it: text copied from another site isn't free to
+  reuse, so Grimoire Codex DB names the source wherever it shows it.
+- **Note.** Optional. Grimoire Codex DB only asks newer accounts for a source or a note on
+  new records.
+
+A new book whose game system isn't in Grimoire Codex DB yet can still be sent. The form
+lists Grimoire Codex DB systems with a similar name. Pick one, or add your system as a new
+record alongside the book. If that new system has to wait for review, the book waits too:
+send it again once the system is approved.
 
 Whether an edit goes live at once or waits for review is up to Grimoire Codex DB, and depends
 on the account behind the token. A new record that waits for review isn't linked
@@ -84,7 +103,7 @@ server with several GMs, they all send as that one account.
 
 ## Settings
 
-Admins find these under **Settings → Add-ons → Grimoire Codex DB**, once
+Admins find these under **Settings → Metadata → Grimoire Codex DB**, once
 `GRIMOIRE_CODEX_DB_API_TOKEN` is set.
 
 | Setting | Default | What it does |
@@ -111,6 +130,6 @@ background.
   holds that exact file.
 - Every request carries the token, so Grimoire Codex DB sees lookups as coming from
   the token's account.
-- File paths, access levels and cover choices never leave your server.
+- File paths and access levels never leave your server. A cover is only sent when you tick it.
 
 To keep Grimoire entirely offline, leave `GRIMOIRE_CODEX_DB_API_TOKEN` unset.

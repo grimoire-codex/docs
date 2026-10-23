@@ -64,7 +64,7 @@ Open [http://localhost:9481](http://localhost:9481). On first launch you'll be p
 
 Grimoire scans your library on startup. For large collections this runs in the background and can take a few minutes. You can browse immediately while it works.
 
-After adding new files later, click **Rescan** at the top of any Settings page (admins) or go to **Settings → Maintenance → Rescan Library**.
+After adding new files later, click **Rescan** at the top of any Server settings page (admins) or go to **Settings → Library → Scanning → Rescan Library**.
 
 ## Stopping and updating
 

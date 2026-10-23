@@ -46,7 +46,7 @@ volumes:
 ```
 
 This is the recommended setup for most people. It is what makes **Settings →
-Maintenance → Open file manager** and the move/rename/delete actions on a book's
+Library → Library tools → Open file manager** and the move/rename/delete actions on a book's
 ⋮ menu work, and it means uploading a new PDF is a drag-and-drop into the
 browser rather than a trip to the shell.
 

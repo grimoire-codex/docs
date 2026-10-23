@@ -61,7 +61,7 @@ If you organize your folders differently and don't want Grimoire deriving catego
 
 There are two ways to disable it, applied in this order of precedence:
 
-1. **Globally** — turn it off for the whole library in **Settings → Application → Folder Category Inference**, or pin it with the [`DISABLE_FOLDER_CATEGORY_INFERENCE`](/configuration/env-vars#library-scanning) environment variable. When the env var is set, the in-app toggle shows the effective value read-only.
+1. **Globally** — turn it off for the whole library in **Settings → Library → Files & folders → Folder Category Inference**, or pin it with the [`DISABLE_FOLDER_CATEGORY_INFERENCE`](/configuration/env-vars#library-scanning) environment variable. When the env var is set, the in-app toggle shows the effective value read-only.
 2. **Per game system** — place an empty file named `.no-auto-category` at a system's folder root (e.g. `books/My System/.no-auto-category`) to disable inference for just that system while leaving the rest of the library on the default behavior.
 
 The change takes effect on the next scan of the affected books.
@@ -80,7 +80,7 @@ Any category folder can contain named subfolders to group related books. Grimoir
 
 By default, folders are listed ahead of the loose books beside them, like most file managers. The same rule applies at every level, both in a category and inside a folder. Subfolder groups include a download button for the whole group.
 
-To sort folders in among the books instead, open **Settings → Account → Reading & Library → Library Browsing** and set **Folders in book lists** to **Mixed with books**. Each folder then takes its place by name, so a series where one volume has companion material still reads in order:
+To sort folders in among the books instead, open **Settings → Preferences → Reading & browsing → Library Browsing** and set **Folders in book lists** to **Mixed with books**. Each folder then takes its place by name, so a series where one volume has companion material still reads in order:
 
 ```
 Aventurisches Jahrbuch 1035 BF
@@ -427,11 +427,11 @@ Changes take effect on the next scan. If you add a rule that matches a file Grim
 
 ## Rescanning
 
-Grimoire [watches the library for changes](#watching-for-changes) by default, so files you add, remove, or reorganize show up by themselves a few seconds later. To rescan by hand, click **Rescan** at the top of any Settings page (admins) or go to **Settings → Maintenance → Rescan Library**. You can also configure a scheduled rescan there.
+Grimoire [watches the library for changes](#watching-for-changes) by default, so files you add, remove, or reorganize show up by themselves a few seconds later. To rescan by hand, click **Rescan** at the top of any Server settings page (admins) or go to **Settings → Library → Scanning → Rescan Library**. You can also configure a scheduled rescan there.
 
 ### Watching for changes
 
-**Settings → Maintenance → Watch for Changes** rescans by itself whenever something changes in the library folder. It waits until the folder has been quiet for a few seconds, so a large copy is scanned once, when it has finished. A change inside one system or folder rescans only that folder; one that spans folders, or adds, renames, or removes a system folder, rescans the whole library. NAS thumbnail folders, `.DS_Store`, half-downloaded `.part` files, and the sidecars Grimoire writes itself are ignored.
+**Settings → Library → Scanning → Watch for Changes** rescans by itself whenever something changes in the library folder. It waits until the folder has been quiet for a few seconds, so a large copy is scanned once, when it has finished. A change inside one system or folder rescans only that folder; one that spans folders, or adds, renames, or removes a system folder, rescans the whole library. NAS thumbnail folders, `.DS_Store`, half-downloaded `.part` files, and the sidecars Grimoire writes itself are ignored.
 
 | Mode | How changes are noticed |
 |---|---|
@@ -449,7 +449,7 @@ On a slow NAS, or for a table that plays in the evening and would rather not sha
 
 Renaming a folder is recognised by the next full scan: books are matched by content and keep their tags, favorites, bookmarks, and reading progress. A renamed **system** folder keeps the same system - its description, cover, tags, campaigns, and access - under the new name, rather than leaving an empty one behind. Identical copies in a renamed folder are told apart by filename.
 
-Deleting a system's folder removes the system on the next full scan, unless a campaign is played in it or you gave it a name, description, or cover of your own. Files deleted from a system that is still there are marked missing rather than forgotten, since a share that was briefly unmounted looks the same; **Settings → Maintenance → Database Cleanup** removes them for good.
+Deleting a system's folder removes the system on the next full scan, unless a campaign is played in it or you gave it a name, description, or cover of your own. Files deleted from a system that is still there are marked missing rather than forgotten, since a share that was briefly unmounted looks the same; **Settings → Library → Danger zone → Database Cleanup** removes them for good. It first counts what it would remove and asks you to confirm, and it refuses to run while the library folder is missing or empty - most likely a share that isn't mounted, where every file would look missing. A cleanup set to run after a scheduled rescan skips itself in that case too.
 
 ::: tip Scoped rescan
 For large libraries you don't have to rescan everything. Every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.

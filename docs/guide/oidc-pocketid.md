@@ -59,15 +59,15 @@ Save the client, then note the **Client ID** and **Client Secret**.
 
 ## 4. Configure Grimoire
 
-In **Settings → Authentication**:
+In **Settings → Sign-in**:
 
-1. Set **Issuer URL** to your Pocket ID address (e.g. `https://id.example.com`) and click **Autopopulate**.
-2. Paste your **Client ID** and **Client Secret**.
-3. Confirm the displayed **Redirect URI** matches the Callback URL you set in Pocket ID.
-4. Set **Groups Claim** to `groups`, then set **Admin group** to `grimoire-admin`, **GM group** to `grimoire-gm` and **Player group** to `grimoire-player`.
-5. Set **Advanced Permissions Claim** to `permissions`.
-6. Enable **Auto-register** if you want accounts created automatically on first login.
-7. Enable **OpenID Connect**.
+1. Tick **Enable OpenID Connect** - the rest of the fields appear once it is on.
+2. Set **Issuer URL** to your Pocket ID address (e.g. `https://id.example.com`) and click **Autopopulate**.
+3. Paste your **Client ID** and **Client Secret**.
+4. Confirm the displayed **Redirect URI** matches the Callback URL you set in Pocket ID.
+5. Set **Groups Claim** to `groups`, then set **Admin group** to `grimoire-admin`, **GM group** to `grimoire-gm` and **Player group** to `grimoire-player`.
+6. Set **Advanced Permissions Claim** to `permissions`.
+7. Enable **Auto-register** if you want accounts created automatically on first login.
 
 ::: warning
 With **Groups Claim** set, users who are not in the `grimoire-admin`, `grimoire-gm`, or `grimoire-player` group are denied.

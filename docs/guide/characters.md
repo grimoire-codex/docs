@@ -201,7 +201,7 @@ it reads correctly again if the entry comes back.
 
 ::: tip Installing packs by hand
 An admin can also copy a pack's directory into `character-content/` inside the
-data directory, then use **Settings → Add-ons → Character content packs →
+data directory, then use **Settings → Add-ons → Content packs →
 Reload from disk**.
 :::
 

@@ -31,6 +31,7 @@ export default defineConfig({
             { text: 'Introduction', link: '/guide/introduction' },
             { text: 'Quick Start', link: '/guide/getting-started' },
             { text: 'Docker Install Guide', link: '/guide/docker-install' },
+            { text: 'Finding Your Way Around Settings', link: '/guide/settings' },
             { text: 'Library Structure', link: '/guide/library-structure' },
             { text: 'Tags', link: '/guide/tags' },
             { text: 'OPF Metadata', link: '/guide/opf-metadata' },

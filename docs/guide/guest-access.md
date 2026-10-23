@@ -8,7 +8,7 @@ A guest can only see the campaign they were invited to (and its shared resources
 
 Guest access is **off by default**. Turn it on either way:
 
-- **In-app**: **Settings → Authentication → Guest Access**.
+- **In-app**: **Settings → Sign-in → Guest Access**.
 - **Pinned via env**: set [`GUEST_ACCESS_ENABLED`](/configuration/env-vars#authentication) to `true` or `false`. When set, it overrides the in-app toggle (shown read-only).
 
 ## Inviting a guest
@@ -32,4 +32,4 @@ Guests log in from the login screen via **Have an invite code?**. This works eve
 
 ## Admin overview
 
-**Settings → Users** lists every guest account (grouped separately from full users) with its nickname, the campaign it's attached to, and who invited it. From there an admin can **convert a guest to a permanent user**: give it a username (and a password when password auth is enabled) and it keeps its campaign membership and character. The password must meet the [password rules](/configuration/security#password-rules).
+**Settings → People** lists every guest account (grouped separately from full users) with its nickname, the campaign it's attached to, and who invited it. From there an admin can **convert a guest to a permanent user**: give it a username (and a password when password auth is enabled) and it keeps its campaign membership and character. The password must meet the [password rules](/configuration/security#password-rules).

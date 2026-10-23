@@ -25,6 +25,17 @@ fix is a community pull request — not a wait for the next Grimoire release.
 built in and needs no install. Once an admin sets `GRIMOIRE_CODEX_DB_API_TOKEN`, it appears
 first in **Fetch metadata** alongside any add-ons you install.
 
+Books also get **File metadata**, built in as well: it reads the details a PDF,
+EPUB or comic carries inside itself - a PDF's title, author, subject, keywords,
+creation date, language and ISBN; an EPUB's title, authors, description,
+publisher, ISBN, subjects, language and date; or a comic's `ComicInfo.xml`
+(title, writer, artists, summary, publisher, genres, tags, links, language,
+date and ISBN). It needs no internet connection and is listed after your
+add-ons. Placeholder values that export tools leave
+behind, like a "Microsoft Word - draft.docx" title or an "Administrator"
+author, are skipped. As with any source, you review what it found before
+anything is applied.
+
 ## Installing an add-on
 
 Go to **Settings → Add-ons** (admin only).

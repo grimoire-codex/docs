@@ -35,7 +35,7 @@ Scanned books with no embedded text layer show an **Image Only** badge and can't
 
 On first startup, Grimoire scans and indexes every PDF page. For large collections this can take several minutes. The index is stored in the data volume and subsequent startups are fast.
 
-Progress is shown in **Settings → Maintenance**. You can also cancel a running index job from there.
+Progress is shown in **Settings → Library → Scanning**. You can also cancel a running index job from there.
 
 ## API
 

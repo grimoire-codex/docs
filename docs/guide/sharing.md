@@ -38,16 +38,16 @@ Tools that load the file URL directly — VTTs, OTFBM, Discord — can't enter a
 
 A link also stops working on its own when it expires, when you're no longer allowed to create share links, when you can no longer open the item yourself (a higher access level, or explicit content you've turned off), or when the item is deleted. Losing access is not permanent: the link is *suspended*, not deleted, and works again if your access returns.
 
-Your links and their states are under **Settings → Account → Sharing** — still reachable after you lose the right to make new ones, so you can always revoke them. Anyone opening a dead link sees the same "This link doesn't work" page whatever the reason.
+Your links and their states are under **Settings → Connections → Share links** — still reachable after you lose the right to make new ones, so you can always revoke them. Anyone opening a dead link sees the same "This link doesn't work" page whatever the reason.
 
 ## Who can make links
 
 Share links are on by default; `SHARE_LINKS_ENABLED=false` turns them off for the whole server (see [Environment Variables](/configuration/env-vars)). Every link stops working and the Share buttons disappear, but the links are kept for when it's turned back on.
 
-In **Settings → Users**:
+Who can make links is set in two places:
 
-- **By role** — admins always can. GMs can by default; players can't. The **Share links** panel above the user table switches GMs and players on or off.
-- **Per user** — each user's row has a **Share links** setting (*Follow role*, *Allow* or *Deny*) that wins over the role either way, with the result shown underneath, e.g. "Allowed (from role)".
+- **By role** — admins always can. GMs can by default; players can't. **Settings → Access & sharing → Share links by role** switches GMs and players on or off.
+- **Per user** — in **Settings → People**, each user's row has a **Share links** setting (*Follow role*, *Allow* or *Deny*) that wins over the role either way, with the result shown underneath, e.g. "Allowed (from role)".
 - **Guests** never can.
 
 Each user's row also lists every link they've made, so an admin can revoke any of them.

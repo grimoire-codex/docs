@@ -4,7 +4,7 @@
 
 On first startup Grimoire scans the library and indexes every PDF page for full-text search. This can take several minutes for large collections. The index is stored in the data volume and subsequent startups are fast.
 
-New files are picked up by themselves while the library is [watched for changes](/guide/library-structure#watching-for-changes), the default. Use the **Rescan** button in the sidebar to pick them up by hand, or configure a scheduled rescan in **Settings → Maintenance** - on a slow server you can turn watching off and scan at a quiet hour instead. For large libraries you can also rescan a single corner: every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.
+New files are picked up by themselves while the library is [watched for changes](/guide/library-structure#watching-for-changes), the default. Use the **Rescan** button in the sidebar to pick them up by hand, or configure a scheduled rescan in **Settings → Library → Scanning** - on a slow server you can turn watching off and scan at a quiet hour instead. For large libraries you can also rescan a single corner: every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.
 
 ### Very large images
 
@@ -28,7 +28,7 @@ The default Grimoire image bundles the [Tesseract](https://github.com/tesseract-
 
 OCR runs quietly in the background, so it never holds up the rest of your library. A scan indexes all your regular (text-based) books, maps, tokens, and audio first — those are searchable right away — and then works through the scanned books afterward. Even if you add 100+ scanned books at once, the rest of your library stays available while they're being processed.
 
-Scanned books are processed **page by page**, and progress is saved as it goes. If the server restarts (or you stop and start a scan), OCR simply picks up where it left off instead of starting the book over, so even a very large scanned book will finish however long it takes. You can watch the queue drain under an **OCR** phase in the scan status (**Settings → Maintenance**).
+Scanned books are processed **page by page**, and progress is saved as it goes. If the server restarts (or you stop and start a scan), OCR simply picks up where it left off instead of starting the book over, so even a very large scanned book will finish however long it takes. You can watch the queue drain under an **OCR** phase in the scan status (**Settings → Library → Scanning**).
 
 ### Options
 
