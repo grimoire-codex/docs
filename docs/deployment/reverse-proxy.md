@@ -7,7 +7,7 @@ environment:
   - BASE_URL=https://grimoire.example.com
 ```
 
-Grimoire reads the client's address from `X-Forwarded-For` only when the request comes from a trusted proxy. The default list covers a proxy or tunnel on the same host, Docker network or LAN, so the setups below need nothing more. If your proxy reaches Grimoire from a public address (a VPS, or Cloudflare's proxy without Cloudflare Tunnel), add it to `TRUSTED_PROXIES`, or every client will share one rate-limit bucket. See [Behind a reverse proxy](/configuration/security#behind-a-reverse-proxy).
+Grimoire reads the client's address from `X-Forwarded-For` only when the request comes from a trusted proxy. The default list - loopback plus `172.16.0.0/12`, the range Docker gives its bridge networks - covers a proxy or tunnel on the same host or in the same Docker Compose project, so the setups below need nothing more when run that way. If your proxy reaches Grimoire from anywhere else - another machine on your LAN, a Kubernetes ingress, a Podman network, a VPS, or Cloudflare's proxy without Cloudflare Tunnel - add its address to `TRUSTED_PROXIES`, or every client will share the proxy's address for rate limiting and Active Sessions. See [Behind a reverse proxy](/configuration/security#behind-a-reverse-proxy).
 
 ## Nginx
 

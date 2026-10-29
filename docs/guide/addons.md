@@ -216,10 +216,11 @@ accordingly. A scripted add-on runs only if you have:
 
 Add-ons that include a script are labelled **Runs code** in the list.
 
-When one does run, it runs in a separate short-lived process with a time limit
-and no access to your database — so a buggy add-on can't take Grimoire down with
-it. That contains accidents, but it is not a full sandbox: a script can still
-reach the network and read files your server can read.
+When one does run, it runs in a separate short-lived process with a time limit,
+so a buggy add-on can't take Grimoire down with it. That contains accidents, but
+it is not a sandbox: the script runs as the same user as Grimoire, so it can
+reach the network and read or change anything Grimoire can, its database
+included. **Approving a script gives it as much power as an admin account.**
 
 ::: warning Treat it like any other program
 Installing a scripted add-on is like running software someone sent you. Only
@@ -229,7 +230,9 @@ against a checksum, so a tampered file is refused.
 :::
 
 If an add-on updates and its script changed, approval resets and you'll be asked
-again.
+again. The same goes for a script edited on disk: Grimoire checks the file
+against the checksum you approved before every run, and holds back one that no
+longer matches until it is approved again.
 
 ## Using a private add-on
 

@@ -14,6 +14,14 @@ OCR runs quietly in the background, so it never holds up the rest of your librar
 
 Each page has a time budget (`OCR_PAGE_TIMEOUT`, default 120 seconds). A page that runs over it is skipped so one bad page can't stall a book forever — the book still finishes, but the skipped pages aren't searchable and it's badged **OCR 14/206** rather than **OCR**. On slow hardware this can affect a lot of pages; see [Pages that get skipped](#pages-that-get-skipped).
 
+### Scans with a few pages of text
+
+Some scanned books carry a handful of real text pages - a digitally-set cover or appendix, or a web enhancement bundled into the back. A book whose own text covers less than half of its pages is still treated as a scan and read with OCR, keeping the text pages it already had. `OCR_MIN_TEXT_COVERAGE` sets that share: `0.5` by default, `0` to only read books with no text at all, `1` to read anything short of complete.
+
+A digital book that is mostly full-page art - a map pack, an art book, a bundle of handouts - looks the same to that test. So before reading one in full, Grimoire reads a few of its picture-only pages as a sample. A scanned page gives a page of words; a map gives a handful. If the sample reads like artwork, the book keeps its own text and isn't read with OCR, and the log says so. **Re-OCR…** in its actions menu reads it anyway, without the sample.
+
+This happens when a book is indexed - added, replaced, or re-scanned - so books already in your library stay as they are until you **Re-OCR…** them.
+
 You can watch the OCR queue drain under an **OCR** phase in the scan status (**Settings → Library → Scanning**), which shows a progress bar and the book currently being processed.
 
 Even with a big collection of scanned books, only the OCR queue is affected: the rest of your library stays fully available and searchable while OCR works through the backlog.
@@ -73,12 +81,26 @@ When you set `TESSDATA_PREFIX`, Tesseract looks **only** in that directory, so i
 
 After changing languages or adding data files, trigger a rescan (or restart) so image-only books are re-processed with the new configuration.
 
+### Each book's own language
+
+You don't have to list every language in `OCR_LANGUAGES` for Grimoire to use it. Before a scanned book is read, Grimoire looks up the language it's written in, from the first of these that says:
+
+1. the book's **Language** field in Grimoire - set it in the book's details, or let a metadata source fill it in
+2. `dc:language` in the book's [OPF sidecar](/guide/opf-metadata)
+3. the language the PDF itself declares
+
+That language is read first, followed by `OCR_LANGUAGES`. With the default `OCR_LANGUAGES=eng` and `deu.traineddata` mounted, a German book is read with `deu+eng` and an English book with `eng`, exactly as before. The field takes a language code (`de`, `de-DE`, `deu`) or a name (`German`, `Deutsch`).
+
+The book's language still needs its data file. If it isn't installed, the book is read with `OCR_LANGUAGES` alone, and the log says which file to add.
+
+To read a book again after fixing its language, use **Re-OCR…** (below).
+
 ## Re-OCR a single book at a higher DPI
 
 `OCR_DPI` sets the render resolution for the whole library, and the default (`150`) is enough for most scans. Occasionally one faint or low-quality book reads better at a higher resolution. Instead of raising the global setting and re-processing everything, you can re-OCR just that one book:
 
 1. Find the scanned book in its game system (it shows an **OCR** or **Image Only** badge).
-2. On the book, open the **actions menu** (the ⋮ button, or right-click the book) and choose **Re-OCR…** (it appears only for OCR'd books, for GM/admin users).
+2. On the book, open the **actions menu** (the ⋮ button, or right-click the book) and choose **Re-OCR…** (it appears for OCR'd and image-only books, and for books whose own text covers less than `OCR_MIN_TEXT_COVERAGE` of their pages, for GM/admin users).
 3. Optionally enter a DPI (for example `300`) and run it. Leave the DPI blank to re-OCR at the global default.
 
 The book's existing search text is cleared and it's re-read in the background at the resolution you chose — the rest of your library is untouched and stays searchable throughout. Progress shows under the OCR phase in the scan status, and the chosen DPI is remembered for that book so it resumes at the same resolution if the server restarts mid-run.

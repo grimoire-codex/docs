@@ -59,6 +59,21 @@ it is stored, and nothing in a sheet runs. Uninstalling a sheet keeps the
 characters built on it: they open showing their stored values until you
 install it again.
 
+### Updating a sheet
+
+Every character follows your installed copy of its sheet, so updating the sheet
+updates all of them. When the catalogue has a newer version of a sheet you
+installed from it, Grimoire offers the update in three places:
+
+- A notice at the top of the **Characters** page names each sheet with your
+  version and the new one. **Update all** installs every update in one go.
+- **Manage sheets** shows an **Update to v…** button beside the sheet.
+- **Browse sheets** shows the same button in place of *Installed*.
+
+A sheet you pasted is never offered an update, even if the catalogue has one
+with the same id, because it may be your own edited copy. To switch it to the
+catalogue's version, install it from **Browse sheets**.
+
 ## Building a character
 
 **New character** asks for a name, the sheet, and optionally a campaign. Then
@@ -129,6 +144,19 @@ A GM can put their own characters in a campaign they run too — NPCs, or the
 whole party of a solo game — and a GM-only campaign with no players works the
 same way.
 
+### On the Characters page
+
+Your own characters come first. Other players' characters you can read through
+a campaign are listed below them under **Party members**, one group per
+campaign in order of campaign name, and each card names its player. Click a
+campaign's name to fold its group away; Grimoire remembers which groups you
+folded in this browser.
+
+The **Sort** menu orders your characters by when you last edited them, by
+name, by system, by **campaign**, or by sheet and version. Sorting by system or
+campaign puts each one under its own heading. Characters still being played
+always come before retired and fallen ones.
+
 ### On the campaign page
 
 The campaign's page has a **Characters** card listing every character in the
@@ -156,6 +184,28 @@ character is built on.
   let in again.
 - It is only offered when the campaign has a GM besides you — not for a
   character in no campaign or in your own personal campaign.
+
+### Giving a character to a player
+
+A GM can prepare characters for their players: pregens for a one-shot, a
+replacement mid-campaign, or a sheet set up for someone new to the builder.
+Create the character in a campaign you run, then pick a player from **Give to
+player…** in the sheet's header. The menu lists the players who have joined
+that campaign, guests included. It does not appear for a character in no
+campaign, or in a campaign someone else runs.
+
+The character becomes the player's, as if they had made it:
+
+- It stays in the campaign, with its art and pictures.
+- **Let the GM edit** is switched on, so you can keep adjusting it. The player
+  can switch that off like any other time.
+- If the player hasn't installed the sheet, your copy is installed for them.
+  If they already have it, their copy is used, even an older one.
+- Content you picked from your own *Only you* rulesets is copied into a new
+  personal ruleset for the player, so the character still reads correctly for
+  them. Content they can already read is left as it is.
+
+There's no undo. To get a character back, ask the player to export it for you.
 
 ### More than one character
 

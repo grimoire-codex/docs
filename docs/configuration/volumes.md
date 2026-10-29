@@ -123,11 +123,20 @@ is never changed.** A backup folder chosen in Settings rather than with `BACKUP_
 it is; if that user can't write to it, the log says so, and you can give it access on the host
 or set `BACKUP_DIR` instead.
 
-**Nothing breaks on upgrade.** If that user couldn't read your library, couldn't write to a
-library root could write to (one mounted without `:ro`), or couldn't write to the data
-volume (say, a network share that refuses to change owners), Grimoire stays root and the
-log says why and how to fix it. Symlinks, `lost+found`, and entries that user already owns at
-the top of the library don't count towards that check.
+**Nothing breaks on upgrade.** If that user couldn't read your library, couldn't write to
+library folders root could write to (a library mounted without `:ro`), or couldn't write to
+the data volume (say, a network share that refuses to change owners), Grimoire stays root and
+the log says why and how to fix it. Write access is checked on the library folder and up to
+500 folders inside it, top levels first, since renaming or moving a book needs write access
+to its folder. Symlinks, `lost+found`, and folders that user already owns don't count towards
+that check. The data volume is tested with a real write, because some NAS filesystems refuse
+writes a plain permission check allows; the library is only ever checked, never written to.
+
+If a folder is still out of reach, renaming, moving or uploading there says Grimoire doesn't
+have permission to write to it and names the user it runs as, while a library mounted `:ro`
+says it is read-only. See the
+[FAQ](/faq#since-updating-renaming-or-moving-a-file-says-the-library-is-read-only) for the
+fixes.
 
 ### Choosing the user: `PUID` / `PGID`
 

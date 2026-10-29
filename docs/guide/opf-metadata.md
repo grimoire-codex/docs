@@ -14,6 +14,7 @@ Grimoire reads [OPF](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm) sidecar 
 | `dc:subject` | Tags (lowercased) |
 | `dc:identifier` with `opf:scheme="ISBN"` | ISBN (hyphens stripped, check digit validated) |
 | `dc:identifier` with `opf:scheme="PRODUCT_CODE"` or `"SKU"` | [Product code](/guide/library-structure#product-codes) |
+| `dc:language` | Language (the first one, as written: `en`, `de-DE`, `eng`). Also picks the [OCR language](/guide/ocr#each-books-own-language) for a scanned book |
 | `guide/reference[@type='cover']` | Cover image (excluded from book list) |
 
 `dc:contributor` is intentionally ignored, as is any `dc:identifier` without one
