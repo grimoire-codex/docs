@@ -52,6 +52,7 @@ export default defineConfig({
             { text: 'Share Links', link: '/guide/sharing' },
             { text: 'OTFBM & Avrae', link: '/guide/otfbm' },
             { text: 'Campaigns', link: '/guide/campaigns' },
+            { text: 'GM Screen', link: '/guide/gm-screen' },
             { text: 'Characters', link: '/guide/characters' },
             { text: 'Armies & Leagues', link: '/guide/armies' },
             { text: 'Grimoire Codex DB', link: '/guide/codex' },

@@ -33,7 +33,7 @@ admin-only:
 | Feature | Needs | What it writes |
 |---|---|---|
 | [File management](/deployment/file-management) (upload, move, rename, delete, new folders) | Writable mount | The files and folders you act on |
-| [Metadata sidecars](/guide/opf-metadata#sidecar-export) (export as `.opf` / `.nfo` / `.json`) | Writable mount | Sidecar files next to your content |
+| [Metadata sidecars](/guide/opf-metadata#writing-metadata-back-out) (export as `.opf` / `.nfo` / `.json`) | Writable mount | Sidecar files next to your content |
 | Everything else (browse, search, read, tags, favorites, campaigns, metadata edits) | Either | Nothing in the library folder |
 
 ### Writable (default)

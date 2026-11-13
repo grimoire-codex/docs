@@ -57,7 +57,7 @@
     <section class="cg-section">
       <h2>Volume paths</h2>
       <div class="cg-field">
-        <label>Library path <span class="cg-hint">(host path to your TTRPG library folder)</span></label>
+        <label>Library path <span class="cg-hint">(host path to your tabletop library folder)</span></label>
         <input v-model="form.libraryPath" placeholder="/path/to/your/library" />
       </div>
       <div class="cg-field">
@@ -537,7 +537,7 @@ function buildQuadletGrimoire() {
   if (form.fileManager === 'calibre-web') deps.push('After=grimoire-calibre-web.service')
 
   return `[Unit]
-Description=Grimoire TTRPG Library Manager
+Description=Grimoire Tabletop Library Manager
 ${deps.length ? deps.join('\n') + '\n' : ''}
 [Container]
 Image=${qualifyImage(imageRef.value)}

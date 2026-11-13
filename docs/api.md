@@ -89,16 +89,17 @@ Each key has a name, an optional expiry (30, 90 or 365 days, or never), and a le
 
 You're only offered what your role can use. A player sees game systems as Read at most, since players can't edit them, and never sees admin-only areas like Logs or the file manager.
 
-A few things are **never available to a key**: signing in, managing API keys, and changing a credential or the account itself (password, deleting the account, OPDS and calendar feed tokens). Guest invite codes (creating, listing, regenerating and sharing them), the OIDC sign-in button icon, the add-on source settings (`PATCH /api/addons/settings`) and private source tokens (`/api/addons/sources/credential`) are session-only too.
+A few things are **never available to a key**: signing in, managing API keys, and changing a credential or the account itself (password, deleting the account, OPDS and calendar feed tokens). Campaign and league guest invite codes (creating, listing, regenerating and sharing them), the OIDC sign-in button icon, the add-on source settings (`PATCH /api/addons/settings`), private source tokens (`/api/addons/sources/credential`) and the backup settings (`PUT /api/backups/settings`, which choose where on the server backups are written) are session-only too.
 
 **Session-only fields.** Some routes a key can use take a few fields that only a signed-in session may set. Sent with a key they get a `403` naming the field; the rest of the route works as usual:
 
-- `POST /api/users` and `PATCH /api/users/:id`: `password`, the `admin` role, and (on `PATCH`) a changed `email`. Converting a guest to a user likewise.
-- `PATCH /api/users/me/preferences`: a changed `email`.
+- `POST /api/users`: `password`, `email` and the `admin` role. A key can still create a player or GM with no password or email.
+- `PATCH /api/users/:id`: `password`, a changed `email` and any change of role. Converting a guest to a user: `password` and the `admin` role.
+- `PATCH /api/users/me/preferences`: a changed `email` or `allow_explicit`.
 - `PATCH /api/settings`: password sign-in, guest access, the login message, and every OIDC setting.
 - Approving an add-on's script, on install (`approve_script: true`) or afterwards (`script_approved: true`).
 
-Campaign responses never include a guest's invite code when the request uses a key.
+Campaign and league responses never include a guest's invite code when the request uses a key.
 
 **Share links with a key.** Creating or changing a [share link](#share-links) with a key also needs the key to have **Read** on the item's own area - Books, Maps, Tokens, Audio or 3D models - besides **Share links: Read and write**.
 
@@ -129,7 +130,8 @@ List each origin exactly (`scheme://host[:port]`), separated by commas. It's off
 | `/api/auth/config` | GET | None | Public auth config for the login screen |
 | `/api/auth/setup` | POST | None | First-run admin account creation. Body: `{username, password}`. The password must meet the [password rules](/configuration/security#password-rules) |
 | `/api/auth/login` | POST | None | Authenticate. Body: `{username, password}`. Returns `{token, user}`. Rate-limited per IP and per account; `429` once either is used up (see [Auth rate limiting](/configuration/security#auth-rate-limiting)) |
-| `/api/auth/me` | GET | any | Current user details |
+| `/api/auth/guest-login` | POST | None | Exchange a campaign or league guest's invite code for a token. Body: `{code}`. Returns `{token, user, campaign_id, league_id}`; `user.guest_scope` is `ttrpg` for a campaign's guest and `wargame` for a league's. `403` while guest access is off, `401` for an unknown or expired code |
+| `/api/auth/me` | GET | any | Current user details, including `guest_scope` (`ttrpg`, `wargame`, or null for everyone but guests) |
 | `/api/auth/openid/login` | GET | None | Start OIDC login, redirects to IdP |
 | `/api/auth/openid/callback` | GET | None | OIDC callback |
 | `/api/auth/openid/discover` | POST | admin | Server-side discovery fetch. Body: `{issuer_url}` |
@@ -141,11 +143,11 @@ List each origin exactly (`scheme://host[:port]`), separated by commas. It's off
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
 | `/api/users` | GET | admin | List all users |
-| `/api/users` | POST | admin | Create a user. Body: `{username, password, role?, email?}`. The password must meet the [password rules](/configuration/security#password-rules) |
+| `/api/users` | POST | admin | Create a user. Body: `{username, password, role?, email?}`. The password must meet the [password rules](/configuration/security#password-rules). A username is trimmed and must be 2-100 characters with no control characters (`422` otherwise) - here, on guest conversion and at setup |
 | `/api/users/:id` | PATCH | admin | Update `role`, `password`, `allow_explicit`, or `email` |
 | `/api/users/:id` | DELETE | admin | Delete a user |
 | `/api/users/me/preferences` | PATCH | any | Update own `display_name`, `allow_explicit`, or `email`. While [OIDC](/guide/oidc) matches existing users by email, only an admin can change an email |
-| `/api/users/me/password` | PATCH | any | Change own password. Body: `{current_password, new_password}`. The new password must meet the [password rules](/configuration/security#password-rules) |
+| `/api/users/me/password` | PATCH | any | Change own password. Body: `{current_password, new_password}`. The new password must meet the [password rules](/configuration/security#password-rules). `400` for a wrong `current_password`; wrong ones are counted per account (`ACCOUNT_RATE_LIMIT`), separately from failed sign-ins, and get `429` past the limit. Ends every other session |
 | `/api/users/me` | DELETE | any | Delete own account |
 
 ---
@@ -245,9 +247,9 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/books` | GET | any | Paginated book list. Query: `system_id`, `category`, `limit` (max 500), `offset`, `sort` (`title` or `added_at`), `order` (`asc`/`desc`; `added_at` defaults to newest first), `added_since` (ISO-8601, UTC if no offset). Each book carries `added_at` - when it first appeared in the library, or `null` for items from the first import of a new install (and older rows with no date). Poll `sort=added_at&added_since=<last poll>` to find new additions. |
+| `/api/books` | GET | any | Paginated book list. Query: `system_id`, `category`, `limit` (max 500), `offset`, `sort` (`title` or `added_at`), `order` (`asc`/`desc`; `added_at` defaults to newest first), `added_since` (ISO-8601, UTC if no offset; one whose offset carries it past either end of the calendar in UTC is clamped to that end). Each book carries `added_at` - when it first appeared in the library, or `null` for items from the first import of a new install (and older rows with no date). Poll `sort=added_at&added_since=<last poll>` to find new additions. |
 | `/api/books/:id` | GET | any | Book detail |
-| `/api/books/:id` | PATCH | gm/admin | Update book metadata |
+| `/api/books/:id` | PATCH | gm/admin | Update book metadata. Changing `category` also moves the file into that category's folder, so a category can't contain `/`, `\`, `..` or a control character (a line break, a tab), start with a dot, be blank, or run past 100 characters or 255 bytes (`422`). Spaces around it are trimmed first |
 | `/api/books/:id/systems` | GET | any (not guest) | The other systems this book is linked onto, besides the one its folder gives it |
 | `/api/books/:id/systems` | POST | gm/admin | Show the book on another system's shelf too. Body: `{system_id}`. 400 for its own system, a version of a book, or across the library/armory divide |
 | `/api/books/:id/systems/:system_id` | DELETE | gm/admin | Take the book off that system's shelf. 404 when it was not linked there |
@@ -268,9 +270,10 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 |---|---|---|---|
 | `/api/maps` | GET | any | Paginated map list. Query: `limit`, `offset`, `map_type`, and the [browse parameters](#browsing-large-collections) |
 | `/api/maps/groups` | GET | any (not guest) | Folders holding matching maps, with counts |
+| `/api/maps/index` | GET | any (not guest) | Where each letter (or added month) starts in the flat list, for a [jump rail](#browsing-large-collections) |
 | `/api/maps/:id` | GET | any | Map detail |
 | `/api/maps/:id` | PATCH | gm/admin | Update `description`, `tags`, `map_type`, `grid_size` |
-| `/api/maps/:id/file` | GET | any | Download/stream the original map file |
+| `/api/maps/:id/file` | GET | any | Download/stream the original map file. A PDF is served inline and may be framed by the app itself, for the viewer's PDF mode; everything else is an attachment |
 | `/api/maps/:id/page/:n` | GET | any | Downscaled WebP render. Query: `width` (default 1600, 16-3000; outside that range is 422) |
 | `/api/maps/:id/vtt/image` | GET | any | Battlemap image decoded out of a `.uvtt`/`.dd2vtt` file |
 | `/api/maps/:id/vtt/data` | GET | any | Grid resolution and wall/portal/light counts from a Universal VTT file |
@@ -325,6 +328,7 @@ new geometry.
 |---|---|---|---|
 | `/api/tokens` | GET | any | Paginated token list. Query: `limit`, `offset`, and the [browse parameters](#browsing-large-collections) |
 | `/api/tokens/groups` | GET | any (not guest) | Folders holding matching tokens, with counts |
+| `/api/tokens/index` | GET | any (not guest) | Where each letter (or added month) starts in the flat list, for a [jump rail](#browsing-large-collections) |
 | `/api/tokens/:id` | GET | any | Token detail |
 | `/api/tokens/:id` | PATCH | gm/admin | Update `description`, `tags`, `is_explicit` |
 | `/api/tokens/:id/file` | GET | any | Download the token image |
@@ -354,6 +358,7 @@ and this is the join the editor uses to group favourited frames.
 |---|---|---|---|
 | `/api/models` | GET | any | Paginated 3D model list. Query: `limit`, `offset`, and the [browse parameters](#browsing-large-collections) |
 | `/api/models/groups` | GET | any (not guest) | Folders holding matching models, with counts |
+| `/api/models/index` | GET | any (not guest) | Where each letter (or added month) starts in the flat list, for a [jump rail](#browsing-large-collections) |
 | `/api/models/:id` | GET | any | Model detail, including viewer capability |
 | `/api/models/:id` | PATCH | gm/admin | Update `description`, `tags`, `is_explicit`, `is_supported` |
 | `/api/models/:id/file` | GET | any | Download the model file |
@@ -372,18 +377,22 @@ The detail response carries three viewer fields. `viewer_loader` names the clien
 
 ## Browsing large collections
 
-The gallery list routes (`/api/maps`, `/api/tokens`, `/api/audio`, `/api/models`) and their `/groups` companions filter, sort and group on the server, so a client can browse a library of any size a page at a time. They share these parameters:
+The gallery list routes (`/api/maps`, `/api/tokens`, `/api/audio`, `/api/models`) and their `/groups` and `/index` companions filter, sort and group on the server, so a client can browse a library of any size a page at a time. They share these parameters:
 
 | Parameter | Meaning |
 |---|---|
 | `q` | Search text over the name, folder path and tags; accepts `field:` prefixes (`tag:`, `title:`, `artist:`, `album:`) |
 | `tags` | Tag filter as JSON: `[{"mode": "include"\|"exclude", "tags": [...]}]` groups (OR within a group, AND between groups), or a flat list. Folder tags count for everything beneath the folder. `__grim:none__` / `__grim:any__` match untagged / tagged items |
 | `favorites` | `true` for the caller's favourites only |
-| `added_since` | Items added at or after this ISO time |
+| `added_since` | Items added at or after this ISO time; undated items never match. A time whose offset puts it outside the calendar in UTC is clamped to that end |
 | `folder` | Only items directly in this folder (`""` for the collection root) |
 | `sort`, `order` | `path` (default), `name` (natural order), `size`, `added_at`; audio also `title`, `duration`, `track` (folder, then disc and track number, then name). `asc` or `desc` |
 
-`/groups` returns `{total, groups: [{path, count}]}` - every folder holding matching items. A tag's items are paged the same way: `/api/tags/:internal/items` returns per-type counts, the tagged folders with counts, and a page of directly-tagged items (`resource_type`, `limit`, `offset`), and `/api/tags/:internal/folder-items` pages through one tagged folder.
+`/groups` returns `{total, groups: [{path, count}]}` - every folder holding matching items.
+
+`/index` (`/api/maps/index`, `/api/tokens/index`, `/api/audio/index`, `/api/models/index`) feeds the gallery's letter rail. It takes the same filters plus `sort` and `order`, and returns `{entries: [{key, label, count, offset}]}`: where each run of the flat list starts. For the `name` sort a run is a first letter (case- and accent-folded, so "Élan" is an `E`; digits and symbols under `#`); for `added_at` it is a month (`label` is `YYYY-MM`, and `""` for undated items). `offset` is where the run starts in the list route's results for the same filters and order, so a client can jump there with `offset=`. Any other sort returns no entries. Books and game systems have no `/index` route.
+
+A tag's items are paged the same way: `/api/tags/:internal/items` returns per-type counts, the tagged folders with counts, and a page of directly-tagged items (`resource_type`, `limit`, `offset`), and `/api/tags/:internal/folder-items` pages through one tagged folder.
 
 ---
 
@@ -391,7 +400,7 @@ The gallery list routes (`/api/maps`, `/api/tokens`, `/api/audio`, `/api/models`
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/search?q=` | GET | any | Full-text search (SQLite FTS5, or PostgreSQL full-text search). Min 2 chars. Optional: `book_id`, `system_id`, `limit` |
+| `/api/search?q=` | GET | any | Full-text search (SQLite FTS5, or PostgreSQL full-text search). `q` is 2-500 characters; only its first 64 terms, operators included, reach the full-text index, and a query the database still can't run is a `400`. Optional: `book_id`, `system_id`, `limit` (1-200, default 50) |
 
 **Response:**
 ```json
@@ -428,6 +437,20 @@ Item types: `book`, `map`, `token`, `system`
 | `/api/bookmarks` | POST | any | Create a bookmark. Body: `{book_id, page_number, label?, notes?, selected_text?}` |
 | `/api/bookmarks/:id` | PATCH | any | Update `label` or `notes` |
 | `/api/bookmarks/:id` | DELETE | any | Delete a bookmark |
+
+---
+
+## Pins
+
+Folders and game systems a user keeps one click away, shown as a strip at the top of their view. Per user; guests have none.
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/pins` | GET | any (not guest) | The user's pins, oldest first: `{pins: [{id, collection, target}]}`. Optional `?collection=` limits to one view (`400` for an unknown one) |
+| `/api/pins` | POST | any (not guest) | Pin. Body: `{collection, target}` (`target` at most 1000 bytes). Pinning something already pinned returns the existing pin. At most 100 pins per view |
+| `/api/pins/:id` | DELETE | any (not guest) | Unpin. Someone else's pin is a `404`, the same as a missing one |
+
+`collection` is the view: `systems` (`target` is a game system's id) or `maps`, `tokens`, `audio`, `models` (`target` is a collection-relative folder path). A pin points at the path rather than the items in it, so it survives a rescan.
 
 ---
 
@@ -516,6 +539,42 @@ stale set load with what remains instead of failing.
 
 Statuses: `available`, `tentative`, `unavailable`
 
+### Wiki map pages
+
+A wiki page's title is written into the `[[links]]` that point at it, so it can't contain `|`, `[`, `]` or a line break: creating or renaming a page to one is a `400`. A title already stored with one is kept on a save that doesn't rename the page, and a title that arrives some other way (a link's auto-created stub, a pin's new target, an import, a template's default) has each run of those characters turned into a space.
+
+A page with `page_type: "map"` is built around one map: `map_id` (an image map linked to the campaign as a resource the caller can see) or `map_file_id` (one of the campaign's own image files). Page detail returns `map` (`{source, id, name, has_thumbnail}`, `source` one of `library`, `file`, `missing`, `none`) and the `pins` the caller may see. A pin is `{id, x, y, label, target_page_id, target_title, icon, icon_color, visibility, sort_order, can_edit, ...}`, with `x`/`y` as fractions (0-1) of the picture, and is returned only to someone who can see both the map page and its target. A pin with `visibility: "gm"` is the campaign GM's alone.
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/campaigns/:id/wiki/:page_id/pins` | POST | anyone who can edit the page | Add a pin to a map page (`400` on any other type). Body: `{x, y, label?, target_page_id?, target_title?, icon?, icon_color?, visibility?}`. A `target_title` naming no page the caller can see creates a stub, as a `[[link]]` does. Only the GM can set `visibility: "gm"` (`403`) |
+| `/api/campaigns/:id/wiki/:page_id/pins/:pin_id` | PATCH | anyone who can edit the page and see the pin | Move or edit a pin; every field optional. `target_page_id: ""` unlinks it; `target_title` relinks by title. `404` for a pin the caller can't see |
+| `/api/campaigns/:id/wiki/:page_id/pins/:pin_id` | DELETE | anyone who can edit the page and see the pin | Remove a pin |
+
+When a map is deleted from the library through the app, each campaign using it gets its own copy as a campaign file where the upload settings allow, and its map pages, `[[map:ID]]` embeds and map resource are pointed at the copy. Otherwise its map pages read as `missing`, with their pins intact. [`GET /api/files/campaign-map-copies`](#file-manager-admin-only) previews this.
+
+### GM screen
+
+A campaign's [GM screen](/guide/gm-screen) is a board of built-in tools on a twelve-column snap grid, for the campaign's owner alone: every route here answers `403` to anyone else, members and admins included. Each panel has a `kind` (`note`, `party`, `counter`, `clocks`, `pools`, `scratch`, `initiative`, `reference`, `table`), a `title`, a cell (`x`, `y`, `w`, `h` in grid units), a `config` and a `state`. An unknown `kind` is a `400`, and an unreadable `config` or `state` value falls back to its default. A board holds at most 60 panels.
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/campaigns/:id/gm-screen` | GET | owner | `{panels}`, top to bottom |
+| `/api/campaigns/:id/gm-screen/panels` | POST | owner | Add a panel. Body: `{kind, title?, x?, y?, w?, h?, config?, state?}`. Without `x`/`y` it takes the first gap it fits |
+| `/api/campaigns/:id/gm-screen/panels/:panel_id` | PATCH | owner | Change any of `title`, `x`, `y`, `w`, `h`, `config`, `state`. `state` replaces the panel's state whole |
+| `/api/campaigns/:id/gm-screen/panels/:panel_id` | DELETE | owner | Remove a panel. Returns `{panels}` |
+| `/api/campaigns/:id/gm-screen/layout` | PUT | owner | Move and resize several panels at once. Body: `{panels: [{id, x, y, w, h}]}` |
+| `/api/campaigns/:id/gm-screen/reset` | POST | owner | Body: `{scope: "scene" \| "session" \| "rest"}`. Clears what each panel marks to clear at that point - counters back to their start, pool tokens and countdown ticks to 0, the initiative order emptied |
+| `/api/campaigns/:id/gm-screen/sources` | GET | owner | `{campaigns: [{id, name, panel_count}]}`: the caller's other campaigns with a board to copy |
+| `/api/campaigns/:id/gm-screen/copy` | POST | owner | Body: `{source_campaign_id, replace?}` (default `true`; `false` adds the board below this one). Copies the layout and each panel's config; every state starts at its default |
+| `/api/campaigns/:id/gm-screen/export` | GET | owner | The board as a document: `{format: "grimoire://gm-screen/v1", name, panels}` |
+| `/api/campaigns/:id/gm-screen/import` | POST | owner | Body: `{document, replace?}`. Puts a board document on this campaign. `400` for one with no panels or a panel of unknown kind |
+| `/api/campaigns/:id/gm-screen/presets` | GET | owner | The community preset catalogue, read from `gm-screens/index.json` beside the configured add-on sources. `403` when community installs are disabled |
+| `/api/campaigns/:id/gm-screen/presets/apply` | POST | owner | Body: `{preset_id, index_url?, replace?}`. Downloads the preset, checks it against the catalogue's digest and puts it on the board. `404` for a preset the catalogue doesn't list, `502` for one that fails to download or verify |
+| `/api/campaigns/:id/gm-screen/party` | GET | owner | The campaign's characters for the party panel, with each one's scalar fields and computed values, and `editable` for those the GM may change (through `PUT /api/characters/:id`) |
+
+Writes follow the campaign's lock like every other campaign write.
+
 ---
 
 ## Characters
@@ -589,26 +648,42 @@ A campaign ruleset is read by everyone at that table and edited by the campaign'
 
 ## Armies & leagues
 
-The [army builder and leagues](/guide/armies) for wargames. Never available to guests; an API key needs the **Armies and leagues** permission. Grimoire ships no points, stat lines or rules text - an army holds only what its owner imported or typed.
+The [army builder and leagues](/guide/armies) for wargames. Not available to a campaign's guests (`403`); a league's [guests](/guide/armies#league-guests) reach their own armies and their leagues, with the library narrowed to their leagues' games and the books shared with them. An API key needs the **Armies and leagues** permission. Grimoire ships no points, stat lines or rules text - an army holds only what its owner imported or typed.
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/armies` | GET | any (not guest) | Your own armies, most recently changed first |
-| `/api/armies` | POST | any (not guest) | Build an army by hand: `{name, game_system_id?, faction_id?, points_limit?, notes?, units}` |
-| `/api/armies/import` | POST | any (not guest) | Import a BattleScribe / New Recruit roster: multipart `file` (`.ros` or `.rosz`, up to 20 MB), optional `name`. Matched to a wargame system and faction by name; the file is kept as uploaded |
+| `/api/armies` | GET | any (league guests too) | Your own armies, most recently changed first |
+| `/api/armies` | POST | any (league guests too) | Build an army by hand: `{name, game_system_id?, faction_id?, points_limit?, notes?, units}` |
+| `/api/armies/import` | POST | any (league guests too) | Import a BattleScribe / New Recruit roster: multipart `file` (`.ros` or `.rosz`, up to 20 MB), optional `name`. Matched to a wargame system and faction by name; the file is kept as uploaded |
+| `/api/armies/games` | GET | any (league guests too) | The wargames an army can be set to: `[{id, name, parent_id}]`. A league's guest gets only their leagues' games and those games' editions |
+| `/api/armies/games/:system_id/factions` | GET | any (league guests too) | `{factions: [{id, name, parent_id, depth}]}`, parents before their sub-factions. `404` for a game the caller may not choose |
 | `/api/armies/:id` | GET / PATCH / DELETE | read: owner, admin, the league's people; write: owner, admin | One army. An imported list's units are read-only |
 | `/api/armies/:id/export` | GET | as GET | `?format=text` (default) the list as text; `?format=roster` the uploaded file |
 | `/api/armies/:id/units/:unit_id/progress` | PUT | owner, admin | A unit's league progress: `{experience, honours, notes}` |
 | `/api/armies/:id/publications` | GET | as GET | Each publication the roster cites, its link, and matching wargame books |
 | `/api/armies/publication-links` | PUT / DELETE | gm/admin | Link a cited publication to a library book (with a `page_offset`) for every army that cites it |
-| `/api/leagues` | GET | any (not guest) | Leagues you organise or play in |
+| `/api/armies/publication-links/books` | GET | gm/admin | `?q=` (2+ characters): up to 10 wargame books the caller can see whose titles contain it, `[{book_id, title}]` |
+| `/api/leagues` | GET | any (league guests too) | Leagues you organise or play in (admins: every league) |
 | `/api/leagues` | POST | gm/admin | Start a league: `{name, description?, game_system_id?, points_limit?, points_win?, points_draw?, points_loss?}` |
 | `/api/leagues/:id` | GET / PATCH / DELETE | read: the league's people; write: organiser, admin | The league with its members, games and standings |
-| `/api/leagues/:id/members` | POST | organiser, admin | Add a member: `{user_id}` |
-| `/api/leagues/:id/members/:user_id` | DELETE | organiser, admin, or that member | Remove a member, or leave |
-| `/api/leagues/:id/members/:user_id/army` | PUT | that member, organiser, admin | Register the army the member plays: `{army_id}` |
+| `/api/leagues/:id/eligible-members` | GET | organiser, admin | Users who could be added: anyone not a guest and not already in |
+| `/api/leagues/:id/members` | POST | organiser, admin | Add a member: `{user_id}`. A guest or unknown user is `404` |
+| `/api/leagues/:id/members/:user_id` | DELETE | organiser, admin, or that member | Remove a member, or leave. Their logged games stay; the league's books shared with them go |
+| `/api/leagues/:id/members/:user_id/army` | PUT | that member, organiser, admin | Register the army the member plays: `{army_id}` (null clears it). It must be the member's own |
 | `/api/leagues/:id/games` | POST | members, organiser | Log a game: `{player_a_id, player_b_id, score_a?, score_b?, result?, mission?, played_on?, notes?}` |
 | `/api/leagues/:id/games/:game_id` | PUT / DELETE | its players, whoever logged it, organiser | Edit or delete a game |
+| `/api/leagues/:id/books` | GET | the league's people | Books shared with the league that the caller may open. The organiser sees every one, with `shared_user_ids`; a member the `public` ones and the `private` ones shared with them |
+| `/api/leagues/:id/books` | POST | organiser, admin | Share a book: `{book_id, visibility?, shared_user_ids?}`. `visibility` is `public` (every member), `private` (the members in `shared_user_ids`) or `organizer` (the default). A book restricted by its access level is kept at `organizer`. `409` for one already shared |
+| `/api/leagues/:id/books/search` | GET | organiser, admin | `?q=` (2+ characters): up to 20 library books the caller can open whose titles contain it, the league's own game first |
+| `/api/leagues/:id/books/order` | PUT | organiser, admin | Reorder: `{ordered_ids}` |
+| `/api/leagues/:id/books/:resource_id` | PATCH / DELETE | organiser, admin | Change a shared book's `visibility` or `shared_user_ids`, or stop sharing it |
+| `/api/leagues/:id/guests` | GET | organiser, admin | The league's guests: `[{user_id, nickname, guest_code, army}]` |
+| `/api/leagues/:id/guests` | POST | organiser, admin | Invite a guest: `{nickname?}`. Makes a code-only account and adds it to the league. `403` while guest access is off |
+| `/api/leagues/:id/guests/:user_id/regenerate` | POST | organiser, admin | A new code; the old one stops working and the guest's sessions end |
+| `/api/leagues/:id/guests/:user_id/share` | GET | organiser, admin | Ready-made invite text: `{code, link, message, mailto_url, discord_message}` |
+| `/api/leagues/:id/guests/:user_id` | DELETE | organiser, admin | Take the guest out of the league. Their account and armies stay, and their code still signs in |
+
+The guest invite-code routes are session-only: an API key can't create, list, regenerate or share them. A guest also in a league someone else organises shows a null `guest_code`, and regenerating or sharing their code is `403` - admins excepted.
 
 ---
 
@@ -619,6 +694,11 @@ The [army builder and leagues](/guide/armies) for wargames. Never available to g
 | `/api/settings` | GET | Get all application settings |
 | `/api/settings` | PATCH | Update application settings |
 | `/api/settings/ui` | GET | UI visibility flags (any authenticated user) |
+| `/api/settings/folder-access` | GET | Every folder restriction: `{rules: [{path, level, exists, books}]}`, by path. `exists` is false once the folder is gone from disk; `books` is how many books the rule covers now |
+| `/api/settings/folder-access` | PUT | Restrict every book beneath a folder. Body: `{path, level: "gm" \| "admin"}`, where `path` is a library-relative folder inside `books/` or the armory (`400` otherwise, `404` when it doesn't exist). Replaces any level the folder had, and demotes campaign shares of the books it restricts to GM-only. Returns the rule |
+| `/api/settings/folder-access?path=` | DELETE | Lift a folder's restriction. `404` when it has none. Shares it demoted stay GM-only |
+
+A folder restriction only ever adds one: a book with no access level of its own resolves to the stricter of what its system or category gives it and the strictest folder rule above it. Only the book's own level overrides a folder rule. Rules follow a folder renamed or moved in the file manager, and are deleted with it.
 
 ---
 
@@ -666,6 +746,30 @@ Every way a link can fail to work - unknown, expired, revoked, suspended, or the
 
 ---
 
+## File manager *(admin only)*
+
+Structural file management for the library. Every path is relative to the library root; a path resolving outside it is a `403`. These routes write to the library, so they need it mounted read-write (`409` otherwise). Moves and renames keep each item's record, so its id, tags, favorites, bookmarks and campaign links survive.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/files/browse` | GET | List one library folder, with each file's indexing state |
+| `/api/files/move` | POST | Move files and folders into a destination folder |
+| `/api/files/rename` | POST | Rename a file or folder on disk |
+| `/api/files/folder` | POST | Create a folder |
+| `/api/files/folder/markers` | PUT | Set or clear a folder's container-kind, NSFW and frame markers |
+| `/api/files/folder` | DELETE | Delete a folder, recursively when confirmed by name |
+| `/api/files/folder/contents` | GET | Whether a folder holds content |
+| `/api/files/campaign-map-copies` | GET | Campaigns using a map at or under `?path=`, and whether deleting it leaves each one a copy: `{campaigns: [{campaign_id, campaign_name, map_id, map_name, outcome}]}`, `outcome` one of `copy`, `too_large`, `uploads_disabled`, `not_image`, `file_missing` (see [Wiki map pages](#wiki-map-pages)) |
+| `/api/files/delete` | POST | Remove a file or folder from the index, or also from disk |
+| `/api/files/folder/scaffold` | POST | Create the standard category folders in a system folder |
+| `/api/files/upload` | POST | Upload one file into a library folder |
+
+**Uploads.** `POST /api/files/upload` takes a multipart `file`, `destination`, an optional `relative_dir`, and `on_conflict`: `rename` (the default), `skip` or `replace`. It returns `{path, name, size, record_id, record_type, replaced}`.
+
+`on_conflict=replace` overwrites the file of an indexed book, map, token, audio file or 3D model and keeps its record, so the same id keeps its tags, metadata, favorites, bookmarks and campaign links. The upload must land on the exact path of an indexed file under `books/`, the armory, `maps/`, `tokens/`, `audio/` or `models/`; anything else is a `409`, so a mistyped name never adds a second copy. It is also a `409` while a library scan or OCR run is going. `record_type` then says what was replaced (`book`, `map`, `token`, `audio` or `model`). The file's size, hash and thumbnail are re-read (and a model's triangle count, a track's duration); what you wrote - description, tags, a map's grid and authored walls and lights - is kept.
+
+---
+
 ## Maintenance *(admin only)*
 
 | Endpoint | Method | Description |
@@ -678,7 +782,7 @@ Every way a link can fail to work - unknown, expired, revoked, suspended, or the
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/api/backups` | GET | List backups, newest first, with `created_at`, `size_bytes`, and `version` |
+| `/api/backups` | GET | List backups, newest first, with `created_at`, `size_bytes`, and `version`. `includes_database` is `false` on PostgreSQL, where an archive holds the files but not the database |
 | `/api/backups` | POST | Create a backup now |
 | `/api/backups/settings` | GET | Read backup schedule, retention, and storage location |
 | `/api/backups/settings` | PUT | Configure schedule, retention, and storage location |

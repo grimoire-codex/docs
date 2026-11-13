@@ -7,6 +7,8 @@ Grimoire has a built-in campaign tracker with two modes.
 ### GM Campaigns
 Created by GMs or admins. Supports player invitations, a banner image, character art and character sheets per member, resource linking with per-resource visibility, a markdown wiki for notes, and scheduling.
 
+Every GM campaign also has a [GM screen](/guide/gm-screen) - a board of tools only the GM sees, for Fear or Malice, countdowns, token pools, the turn order and the party's hit points at a glance. Open it from **GM screen** beside **Open Notes** on the campaign page.
+
 ### Personal Campaigns
 Private to a single user. No sharing. A player can keep one to track their own notes for a game someone else runs, and put their [character](./characters#characters-and-campaigns) in it.
 
@@ -53,7 +55,7 @@ Each campaign has a full-page markdown **wiki** (opened from the campaign overvi
 - **Visibility per page**: *GM only*, *Public* (all members), or *Private* (specific members). Change it from the visibility badge on the page: the badge is a dropdown, and for *Private* pages it lists members so you can grant or revoke access without opening the editor.
 - **GM secrets inline**: wrap text in `||double pipes||` (or use the **GM secret** button) to hide just that span inside an otherwise shared page. The GM sees it highlighted; players receive nothing at all — the secret is stripped before the page reaches them, leaving no text and no placeholder, so a player never even knows a secret is there. (Personal campaigns keep everything, since only you can read them.) Your secrets survive a player editing their own page: when they save, the server re-weaves each secret back into the exact spot it was — even if the player edited the text above and below it. If a player rewrites so much that the spot can't be found, the secret isn't lost; it's moved to the bottom of the page for you to reposition.
 - **Nested pages**: organize the sidebar as a tree: any page can hold subpages to any depth. Drag pages to re-nest them, add a subpage from the parent row, and collapse/expand branches. Deleting a page lifts its subpages up to the parent rather than removing them.
-- **Page links**: write `[[Page Title]]` to link pages; missing targets are auto-created as stubs, and each page shows what links back to it. A `[[...]]` inside a code block is code, not a link.
+- **Page links**: write `[[Page Title]]` to link pages; missing targets are auto-created as stubs, and each page shows what links back to it. A `[[...]]` inside a code block is code, not a link. Because a title is written into the links that point at it, a page title can't contain `|`, `[`, `]` or a line break. A title that arrives another way - an imported page, or one a link or map pin creates - has each run of those characters replaced with a space.
 - **Grimoire embeds**: drop a book (optionally at a page), map, token, audio track (plays in the global player; a note with several can be played as a playlist via **Play all**), or campaign file straight into a page. The embed picker lists the campaign's linked resources. You can also **upload an image** right from the picker, and it's embedded inline and added to your linked resources.
 
 ### Map pages

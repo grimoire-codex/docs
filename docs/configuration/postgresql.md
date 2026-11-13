@@ -14,7 +14,7 @@ of thousands of pages is fine.
 ## Requirements
 
 - **PostgreSQL 15 or newer.** CI tests every change against 15 and the newest release. See
-  [Why isn't PostgreSQL 14 supported?](#why-isnt-postgresql-14-supported)
+  [Why isn't PostgreSQL 14 supported?](#why-isn-t-postgresql-14-supported)
 - **An empty database** for Grimoire, and a user that owns it. On first start Grimoire
   creates its tables, and enables the `unaccent` extension, which search uses to match
   `cafe` with `café`. `unaccent` ships with PostgreSQL and is a *trusted* extension, so the

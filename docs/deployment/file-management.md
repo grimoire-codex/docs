@@ -83,20 +83,23 @@ if your core books live in a folder called *Rulebooks*, a book re-categorised as
 
 Changes made in the file manager apply immediately — no rescan needed.
 
-## Replacing a book's file
+## Replacing a file
 
-To swap in a corrected file for a book you already have (a cleaner scan, a
-re-OCRed text layer, an errata printing) without losing its tags, metadata edits,
-bookmarks, or favorites, upload it over the old one with
-`POST /api/files/upload` and `on_conflict=replace`. The file must have the same
-name and folder as the book it replaces. See the
+To swap in a corrected file you already have (a cleaner scan, a re-OCRed text
+layer, an errata printing, or a map whose gridded and gridless renderings were
+filed under each other's names) without losing its tags, metadata edits,
+bookmarks, favorites, or campaign links, upload it over the old one with
+`POST /api/files/upload` and `on_conflict=replace`. This works for books, maps,
+tokens, audio files, and 3D models. The file must have the same name and folder
+as the one it replaces. See the
 [API reference](https://github.com/hunter-read/grimoire/blob/main/docs/api.md)
 for the details.
 
-The book keeps its record. Everything Grimoire read from the old file is read
-again from the new one: page count, cover, and search text. An image-only PDF
-goes back into the OCR queue. Your own metadata is left alone. Bookmarks keep
-their page numbers, so check them if the new file's pages moved.
+The item keeps its record. Everything Grimoire read from the old file is read
+again from the new one: a book's page count, cover, and search text, a map's or
+token's size and thumbnail, a model's triangle count, and a track's duration. An
+image-only PDF goes back into the OCR queue. Your own metadata is left alone.
+Bookmarks keep their page numbers, so check them if the new file's pages moved.
 
 Each replace queues its book for one background re-index, which reads the new
 text of every book replaced (or re-indexed from its book page) while it runs, so

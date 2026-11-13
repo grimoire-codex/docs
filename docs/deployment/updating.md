@@ -38,6 +38,10 @@ The default tags (`latest`, `1.5.0`, …) bundle the Tesseract OCR engine so ima
 
 Schema changes are applied automatically on startup via [Alembic](https://alembic.sqlalchemy.org/): **no manual action is required** when upgrading, including from versions that predate Alembic. On first run under the new system, an existing database is detected and stamped at the correct baseline, so only genuinely new migrations run thereafter.
 
+::: info Upgrading to 1.11
+The first start after upgrading to 1.11 reorganises the search index once. On a very large library this takes a few minutes. It is logged as it goes, is safe to interrupt (the next start carries on from where it stopped), and needs about twice the index's disk space while it runs. Books already indexed stay searchable afterwards without being re-read.
+:::
+
 Your data volume (database, thumbnails, search index, user accounts) is stored separately and is not affected by pulling a new image. Back up `DATA_PATH` before upgrading, as always.
 
 ## After updating
