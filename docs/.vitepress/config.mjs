@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'Grimoire',
-  description: 'Self-hosted TTRPG library manager — documentation',
+  description: 'Self-hosted tabletop library manager for role-playing games and wargames - documentation',
   ignoreDeadLinks: [/^http:\/\/localhost/],
 
   head: [
@@ -43,6 +43,7 @@ export default defineConfig({
           items: [
             { text: 'Reader', link: '/guide/reader' },
             { text: 'Search', link: '/guide/search' },
+            { text: 'Browsing Large Libraries', link: '/guide/browsing' },
             { text: 'OCR (Scanned Books)', link: '/guide/ocr' },
             { text: 'Audio Library', link: '/guide/audio' },
             { text: '3D Models', link: '/guide/models' },
@@ -52,6 +53,7 @@ export default defineConfig({
             { text: 'OTFBM & Avrae', link: '/guide/otfbm' },
             { text: 'Campaigns', link: '/guide/campaigns' },
             { text: 'Characters', link: '/guide/characters' },
+            { text: 'Armies & Leagues', link: '/guide/armies' },
             { text: 'Grimoire Codex DB', link: '/guide/codex' },
             { text: 'Community Add-ons', link: '/guide/addons' },
             { text: 'Community Projects', link: '/guide/community-projects' },
@@ -79,6 +81,7 @@ export default defineConfig({
             { text: 'Volumes', link: '/configuration/volumes' },
             { text: 'Pre-seeding Users', link: '/configuration/users' },
             { text: 'Backups', link: '/configuration/backups' },
+            { text: 'PostgreSQL', link: '/configuration/postgresql' },
             { text: 'Performance', link: '/configuration/performance' },
             { text: 'Security', link: '/configuration/security' },
           ],
@@ -108,7 +111,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the GNU GPL v3.0 License.',
-      copyright: 'Grimoire — Self-Hosted TTRPG Library Manager',
+      copyright: 'Grimoire - Self-Hosted Tabletop Library Manager',
     },
 
     editLink: {

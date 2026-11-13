@@ -84,7 +84,8 @@ Each key has a name, an optional expiry (30, 90 or 365 days, or never), and a le
 | Logs | The application logs |
 | Settings | App settings |
 | Users | User accounts, and your own preferences |
-| Personal | Your favorites, bookmarks, saved filters, saved playlists and soundboards, and themes |
+| Personal | Your favorites, bookmarks, saved filters, pins, saved playlists and soundboards, and themes |
+| Armies and leagues | Your army lists, the source books they cite, and the leagues you play in |
 
 You're only offered what your role can use. A player sees game systems as Read at most, since players can't edit them, and never sees admin-only areas like Logs or the file manager.
 
@@ -163,6 +164,7 @@ List each origin exactly (`scheme://host[:port]`), separated by commas. It's off
 {
   "game_systems": 12,
   "books": 340,
+  "armory_books": 25,
   "maps": 1500,
   "tokens": 800,
   "audio": 250,
@@ -211,6 +213,7 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 |---|---|---|
 | `game_systems` | Number of game systems (top-level library folders) | `number` |
 | `books` | Total books (PDFs) | `number` |
+| `armory_books` | The wargame books among `books`, from the [Armory](/guide/library-structure#armory) | `number` |
 | `maps` | Total maps | `number` |
 | `tokens` | Total tokens | `number` |
 | `audio` | Total audio tracks | `number` |
@@ -226,11 +229,12 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/systems` | GET | any | List all systems with book counts |
+| `/api/systems` | GET | any | List all systems with book counts. `game_type=ttrpg` lists the role-playing systems in `books/`, `game_type=wargame` the [Armory](/guide/library-structure#armory)'s; both when omitted. Each system carries its `game_type` |
 | `/api/systems/:id` | GET | any | System detail + full book list. `include_books=false` returns the summary alone |
 | `/api/systems/:id/books` | GET | any (not guest) | One page of the system's books matching the shelf filters. Query: filters, `category` + `folder` (one folder of the grouped shelf), `sort`, `order`, `limit`, `offset` |
 | `/api/systems/:id/book-groups` | GET | any (not guest) | Every category and subfolder holding matching books, with counts |
 | `/api/systems/:id/book-facets` | GET | any (not guest) | The tags, genres, product-code prefixes and categories on the shelf |
+| `/api/systems/:id/factions` | GET | any (not guest) | A wargame system's [factions](/guide/library-structure#factions): `{factions: [{id, name, parent_id, depth, book_count}]}`, parents before their sub-factions. Empty for a role-playing system |
 | `/api/systems/:id` | PATCH | gm/admin | Update metadata |
 
 **PATCH fields:** `name`, `slug`, `description`, `publishers`, `character_builder_url`, `cover_image`, `cover_book_id`, `tags`, `genre`, `is_explicit`
@@ -244,6 +248,9 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | `/api/books` | GET | any | Paginated book list. Query: `system_id`, `category`, `limit` (max 500), `offset`, `sort` (`title` or `added_at`), `order` (`asc`/`desc`; `added_at` defaults to newest first), `added_since` (ISO-8601, UTC if no offset). Each book carries `added_at` - when it first appeared in the library, or `null` for items from the first import of a new install (and older rows with no date). Poll `sort=added_at&added_since=<last poll>` to find new additions. |
 | `/api/books/:id` | GET | any | Book detail |
 | `/api/books/:id` | PATCH | gm/admin | Update book metadata |
+| `/api/books/:id/systems` | GET | any (not guest) | The other systems this book is linked onto, besides the one its folder gives it |
+| `/api/books/:id/systems` | POST | gm/admin | Show the book on another system's shelf too. Body: `{system_id}`. 400 for its own system, a version of a book, or across the library/armory divide |
+| `/api/books/:id/systems/:system_id` | DELETE | gm/admin | Take the book off that system's shelf. 404 when it was not linked there |
 | `/api/books/:id/reindex` | POST | gm/admin | Re-run OCR on a scanned book. Optional query `ocr_dpi` (72–600) re-reads it at a higher resolution than the global `OCR_DPI`. Clears the search index and re-queues the book (OCR runs in the background). 400 for books with an embedded text layer. |
 | `/api/books/:id/rescan` | POST | gm/admin | Re-read a single book from disk and rebuild its search index, for a file edited externally. Works for any PDF: a text-layer book is re-extracted; an image-only book is re-queued for OCR. Refreshes page count and thumbnail. Runs in the background; no-ops if a library scan is already running. 400 for non-PDFs. |
 | `/api/books/:id/file` | GET | any | Download/stream the file |
@@ -384,7 +391,7 @@ The gallery list routes (`/api/maps`, `/api/tokens`, `/api/audio`, `/api/models`
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/search?q=` | GET | any | FTS5 full-text search. Min 2 chars. Optional: `book_id`, `system_id`, `limit` |
+| `/api/search?q=` | GET | any | Full-text search (SQLite FTS5, or PostgreSQL full-text search). Min 2 chars. Optional: `book_id`, `system_id`, `limit` |
 
 **Response:**
 ```json
@@ -577,6 +584,31 @@ A campaign ruleset is read by everyone at that table and edited by the campaign'
 | `/api/rulesets/:id/fork` | POST | editor | Copy an entry into this ruleset to change it |
 | `/api/rulesets/:id/entries` | GET / POST | read: reader; write: editor | List or add entries |
 | `/api/rulesets/:id/entries/:entry_id` | GET / PUT / DELETE | read: reader; write: editor | One entry |
+
+---
+
+## Armies & leagues
+
+The [army builder and leagues](/guide/armies) for wargames. Never available to guests; an API key needs the **Armies and leagues** permission. Grimoire ships no points, stat lines or rules text - an army holds only what its owner imported or typed.
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/armies` | GET | any (not guest) | Your own armies, most recently changed first |
+| `/api/armies` | POST | any (not guest) | Build an army by hand: `{name, game_system_id?, faction_id?, points_limit?, notes?, units}` |
+| `/api/armies/import` | POST | any (not guest) | Import a BattleScribe / New Recruit roster: multipart `file` (`.ros` or `.rosz`, up to 20 MB), optional `name`. Matched to a wargame system and faction by name; the file is kept as uploaded |
+| `/api/armies/:id` | GET / PATCH / DELETE | read: owner, admin, the league's people; write: owner, admin | One army. An imported list's units are read-only |
+| `/api/armies/:id/export` | GET | as GET | `?format=text` (default) the list as text; `?format=roster` the uploaded file |
+| `/api/armies/:id/units/:unit_id/progress` | PUT | owner, admin | A unit's league progress: `{experience, honours, notes}` |
+| `/api/armies/:id/publications` | GET | as GET | Each publication the roster cites, its link, and matching wargame books |
+| `/api/armies/publication-links` | PUT / DELETE | gm/admin | Link a cited publication to a library book (with a `page_offset`) for every army that cites it |
+| `/api/leagues` | GET | any (not guest) | Leagues you organise or play in |
+| `/api/leagues` | POST | gm/admin | Start a league: `{name, description?, game_system_id?, points_limit?, points_win?, points_draw?, points_loss?}` |
+| `/api/leagues/:id` | GET / PATCH / DELETE | read: the league's people; write: organiser, admin | The league with its members, games and standings |
+| `/api/leagues/:id/members` | POST | organiser, admin | Add a member: `{user_id}` |
+| `/api/leagues/:id/members/:user_id` | DELETE | organiser, admin, or that member | Remove a member, or leave |
+| `/api/leagues/:id/members/:user_id/army` | PUT | that member, organiser, admin | Register the army the member plays: `{army_id}` |
+| `/api/leagues/:id/games` | POST | members, organiser | Log a game: `{player_a_id, player_b_id, score_a?, score_b?, result?, mission?, played_on?, notes?}` |
+| `/api/leagues/:id/games/:game_id` | PUT / DELETE | its players, whoever logged it, organiser | Edit or delete a game |
 
 ---
 

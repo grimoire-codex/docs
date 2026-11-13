@@ -69,7 +69,7 @@ In your Homepage `services.yaml`, add a service with a `customapi` widget:
 - Grimoire:
     icon: grimoire.png
     href: https://grimoire.example.com
-    description: TTRPG Library
+    description: Tabletop Library
     widget:
       type: customapi
       url: https://grimoire.example.com/api/stats

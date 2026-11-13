@@ -1,6 +1,6 @@
 # Search
 
-Grimoire indexes every page of every PDF using SQLite FTS5 for fast full-text search across your entire library.
+Grimoire indexes every page of every PDF for fast full-text search across your entire library - with SQLite FTS5, or PostgreSQL's full-text search if you [run on PostgreSQL](/configuration/postgresql#search).
 
 ## What gets indexed
 

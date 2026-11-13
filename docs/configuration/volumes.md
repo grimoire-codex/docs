@@ -13,7 +13,7 @@ volumes:
 
 ## Library volume
 
-Mount your TTRPG library folder here. The path inside the container defaults to
+Mount your library folder here. The path inside the container defaults to
 `/app/library`. If you change it, also set `LIBRARY_PATH` to match:
 
 ```yaml

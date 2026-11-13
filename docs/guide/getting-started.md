@@ -18,6 +18,11 @@ library/
 │       │   └── Curse of Strahd/
 │       │       └── Curse of Strahd.pdf
 │       └── homebrew/
+├── armory/                    ← wargames, laid out the same way
+│   └── Warhammer 40,000/
+│       └── Factions/
+│           └── Necrons/
+│               └── Codex - Necrons.pdf
 ├── maps/
 │   └── Sunken Temple (22x22)/
 │       └── The Sunken Temple.png

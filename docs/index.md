@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Grimoire
-  text: Self-Hosted TTRPG Library Manager
-  tagline: Browse, search, and read your entire tabletop RPG PDF collection from any device.
+  text: Self-Hosted Tabletop Library Manager
+  tagline: Browse, search, and read your role-playing and wargame PDF collection from any device.
   image:
     src: /logo.png
     alt: Grimoire
@@ -25,7 +25,7 @@ features:
     details: Organizes your collection by game system with automatic folder detection and category mapping.
   - icon: 🔍
     title: Full-Text Search
-    details: Every page of every PDF is indexed with SQLite FTS5 for instant, accurate search across your entire library.
+    details: Every page of every PDF is indexed for instant, accurate full-text search across your entire library.
   - icon: 📖
     title: Page-by-Page Viewer
     details: PDFs rendered as images for fast mobile viewing with pinch-to-zoom, swipe navigation, and spread mode.
@@ -35,6 +35,9 @@ features:
   - icon: 🔊
     title: Audio Library
     details: Browse ambient tracks, music, and sound effects by folder with a persistent global player that keeps playing as you navigate.
+  - icon: ⚔️
+    title: Armory, Armies & Leagues
+    details: Wargame books on a shelf of their own, filed by faction, with BattleScribe army lists that open each unit's rules in your books, and leagues with standings.
   - icon: 🎭
     title: Campaigns
     details: Track GM-run and personal campaigns with a markdown notes wiki, character sheets, linked resources, guest invites, and scheduling.

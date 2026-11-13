@@ -6,7 +6,8 @@ Grimoire derives game systems, categories, and groups entirely from your folder 
 
 ```
 library/
-├── books/    ← PDF collection (and archive files)
+├── books/    ← role-playing games: PDF collection (and archive files)
+├── armory/   ← wargames, laid out like books/ (see Armory below)
 ├── maps/     ← battle maps and scene images
 ├── tokens/   ← character tokens and portraits
 ├── audio/    ← ambient tracks, music, and sound effects
@@ -242,6 +243,40 @@ Containers organize the grid; they do not lock systems away. The **Group collect
 
 One-page collections are the deliberate exception and stay grouped either way. Keeping a pile of tiny one-book games out of the main grid is the entire reason that collection exists, so flattening leaves its chip in the Special Collections strip and its games reachable by drilling in.
 
+### Shared books in a container
+
+Some books belong to the whole container rather than one of its systems: a Forgotten Realms sourcebook that works with both D&D 5e and 5.5e, or a bestiary a whole system family shares. Put them in a `shared-library` folder inside the container:
+
+```
+books/
+└── Dungeons & Dragons/
+    ├── .parent-system-container
+    ├── shared-library/          ← the container's own shelf, not a system
+    │   ├── core/
+    │   │   └── Forgotten Realms Adventures.pdf
+    │   └── adventures/
+    │       └── Sword Coast/
+    │           └── Lost Mine.pdf
+    ├── 5e/
+    └── 5.5e/
+```
+
+`shared-library` is a reserved name in parent-system, family, publisher, and generic containers, in any capitalization. It must be spelled exactly, with no `(nsfw)` suffix or sort prefix. It never becomes a system: its books belong to the container itself. Lay it out like any system folder, since category folders and subfolders work the same inside it. A one-page collection has no shared shelf, because each of its folders is a game of its own.
+
+On the container's page, the systems come first in the system view and the shared books follow underneath in the book view, with the usual sorting, filters, grouping, and bulk edit. With **Group collections** switched off, a container that holds shared books keeps its own card in the grid beside its systems, so those books stay within reach. A container without any shared books drops out as before.
+
+::: tip Upgrading
+If you made a `shared-library` folder inside a container before the name was reserved, it was scanned as a system of its own. The next rescan moves its books onto the container, and the old system, left empty, is pruned like any system whose folder is gone.
+:::
+
+### A book in more than one system
+
+A book that belongs to two systems that share no container can be **linked** onto another system's shelf instead of copied. Examples include the Midgard Worldbook, which works with both Pathfinder and D&D, and an OSR module statted for three games. Open the book's editor (GM or admin) and use **Also shown in → Show on another system**.
+
+A link works like a symlink. The file stays where it is and there is still only one book, with one set of tags, bookmarks, favorites, and reading progress. It appears on the other system's shelf at the top of its category, marked **Linked**, and the badge names the system it lives in. Its category, tags, cover, and access level all come from the book itself, so a link never shows a book to anyone who couldn't already open it.
+
+Links are stored by Grimoire, not in the library. They work on a read-only library, survive every rescan, and stay with a book that is moved or renamed. Deleting the book or the system removes its links. A system whose shelf holds only linked books is not empty, so library cleanup keeps it. A link only joins shelves of the same kind, so a role-playing book can't be linked onto a wargame in the armory.
+
 ### Reorganizing an existing library
 
 Moving a flat `books/Dungeons & Dragons 5e/` into `books/Dungeons & Dragons/5e/` produces a child whose generated name matches the system you already have. Grimoire adopts that existing system instead of creating a duplicate — its books, metadata, tags, and cover follow it into the container, and the old entry disappears from the top level.
@@ -256,7 +291,7 @@ A system's cover comes from the first of these that exists:
 
 A `cover.*` / `folder.*` image at a system's folder root is artwork only — it is not also indexed as a book. The same name deeper in the tree (in a category folder, say) is an ordinary image book.
 
-Container folders hold no books of their own, so options 1 and 2 are the only ones available to them:
+A container never takes a book's thumbnail, not even one from its shared shelf, so options 1 and 2 are the only ones available to it:
 
 ```
 books/
@@ -329,6 +364,78 @@ Once set, a product code is:
 
 The [DriveThruRPG add-on](/guide/addons#for-books) also fills in the code
 from the store's **Publisher Stock #**.
+
+## Armory
+
+Wargame books - rulebooks, codexes and battletomes, mission packs, technical readouts - go in an `armory/` folder beside `books/` (`armoury/` works too). It must sit **inside** the library: a separate volume mounted at `/armory` is never scanned, so mount wargames at `<library path>/armory` instead.
+
+It is laid out the same way as `books/`: each top-level folder is a game, and editions can sit inside it as [parent systems](#parent-systems-and-editions). The Armory shows in the sidebar between Library and Maps once it holds a book (admins see it from the start, so there is somewhere to begin). An admin can hide it, or the Library, under **Settings → Sidebar → Sidebar Visibility** - see [Settings](/guide/settings#the-sidebar).
+
+```
+library/
+├── books/                         ← role-playing games
+└── armory/                        ← wargames
+    └── Warhammer 40,000/
+        ├── .parent-system-container
+        └── 10th Edition/
+            ├── Core/
+            │   └── Core Rules.pdf
+            ├── Rules Updates/
+            │   └── Balance Dataslate.pdf
+            ├── Missions/
+            │   └── Pariah Nexus.pdf
+            └── Factions/
+                ├── Necrons/
+                │   ├── Codex - Necrons.pdf
+                │   └── Rules Updates/
+                │       └── Necrons FAQ.pdf
+                └── Space Marines/
+                    ├── Codex - Space Marines.pdf
+                    └── Blood Angels/
+                        └── Codex Supplement - Blood Angels.pdf
+```
+
+A game in the armory is a separate system from a role-playing game of the same name, so BattleTech the RPG (in `books/`) and BattleTech the wargame (in `armory/`) each get their own shelf.
+
+### Wargame categories
+
+Wargame folders are read with their own category words, which differ from the [role-playing ones](#category-folder-names): here a `Campaigns` folder holds campaign books, not adventures.
+
+| Category | Recognized folder (or file) names |
+|---|---|
+| Core Rulebooks | `core`, `rulebook`, `rules`, `total warfare`, `basic` |
+| Army Books | `codex`, `battletome`, `army book`, `armies`, `army`, `liber`, `field manual`, `index`, `faction` |
+| Starter Set | `starter set`, `starter`, `box set`, `boxed set`, `combat patrol`, `spearhead` |
+| Supplements | `supplement`, `expansion`, `imperial armour`, `operations`, `sourcebook` |
+| Rules Updates & Errata | `errata`, `faq`, `dataslate`, `balance`, `rules update`, `rules commentary`, `designer commentary`, `points`, `munitorum`, `battle profile` |
+| Mission Packs | `mission`, `missions`, `chapter approved`, `tournament`, `general's handbook`, `matched play` |
+| Campaign Books | `campaign`, `crusade`, `path to glory`, `narrative`, `turning point`, `historical` |
+| Unit References | `technical readout`, `tro`, `record sheet`, `datacard`, `datasheet`, `unit card`, `unit reference` |
+| Painting & Hobby | `painting`, `paint`, `hobby`, `eavy metal`, `terrain building` |
+| Lore & Fiction | `lore`, `novel`, `fiction`, `black library`, `art book` |
+| Magazines & Zines | `magazine`, `white dwarf`, `shrapnel`, `zine`, `periodical` |
+
+Matching works as for role-playing books - case-insensitive, any word of the name - with the more specific categories checked first: errata and missions come before army books, so `Necrons FAQ` is errata. `tro` (or `TROs`) counts only as the whole folder name. A folder named for no category is a [faction](#factions).
+
+A book whose folders leave the category open takes it from its filename: `Codex Supplement - Blood Angels.pdf` is a supplement and `Necron Painting Guide.pdf` a painting guide, even inside `Factions/`. A book in a faction folder that its name says nothing about is an army book; one loose in the game's folder is core.
+
+### Factions
+
+The armies a wargame is played with are read from the folders. Inside a game (or an edition), any folder that is not a category word is a **faction**, and folders inside a faction are its sub-factions: `Factions/Space Marines/Blood Angels/` files a book under Blood Angels, inside Space Marines. Under an army-book folder (`Factions/`, `Codexes/`, `Battletomes/`) the folders below are factions too, so both of these work:
+
+```
+armory/Warhammer 40,000/10th Edition/Factions/Necrons/Codex.pdf   ← the usual layout
+armory/Warhammer 40,000/10th Edition/Necrons/Codex.pdf            ← armies straight in the game
+```
+
+Once a folder has filed a book under some other category, the folders below it are ordinary subfolders: `Campaigns/Pariah Nexus/` is a campaign, not an army.
+
+Some names read the wrong way - `Imperial Armour` would be taken for a supplement folder, and an army named `Armies of Order` for an army-book folder. Put an empty marker file in the folder to settle it:
+
+- `.faction` - this folder is a faction, whatever its name says
+- `.category` - this folder is a category (an unrecognized name becomes its own category, as in `books/`)
+
+A book's factions show in the reader's details panel, and the shelf groups each faction's books under its folder. [Armies](/guide/armies) are matched to these factions by name.
 
 ## Maps
 

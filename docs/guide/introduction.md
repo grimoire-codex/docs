@@ -1,11 +1,12 @@
 # Introduction
 
-Grimoire is a self-hosted web application for managing your tabletop RPG PDF collection. It runs as a Docker container, mounts your existing library folder, and gives you a clean browser-based UI to browse, search, and read your books from any device on your network.
+Grimoire is a self-hosted web application for managing your tabletop collection - role-playing games and wargames. It runs as a Docker container, mounts your existing library folder, and gives you a clean browser-based UI to browse, search, and read your books from any device on your network.
 
 ## What it does
 
 - **Organizes** your PDFs by game system and category, derived automatically from your folder structure, with no manual tagging required to get started
-- **Indexes** every page of every PDF for full-text search using SQLite FTS5, including OCR of image-only scanned PDFs
+- **Keeps wargames apart** in an [Armory](/guide/library-structure#armory) of their own, filed by faction, with [army lists and leagues](/guide/armies) alongside
+- **Indexes** every page of every PDF for full-text search, including OCR of image-only scanned PDFs
 - **Renders** PDF pages server-side as WebP images so the reader is fast even on mobile
 - **Tracks** maps, tokens, audio, and archive files alongside books in the same library, with a persistent global audio player
 - **Supports** campaigns (with a notes wiki, character sheets, and guest invites), bookmarks, favorites, OPDS feeds, and OpenID Connect authentication
@@ -29,7 +30,7 @@ UI to pick the changes up.
 | Layer | Technology |
 |---|---|
 | Backend | FastAPI (async Python 3.12) |
-| Database | SQLite with FTS5 full-text search |
+| Database | SQLite with FTS5 full-text search, or [PostgreSQL](/configuration/postgresql) 15+ |
 | PDF rendering | PyMuPDF → WebP |
 | Frontend | React 19 and TypeScript, served by the FastAPI backend |
 | Optional cache | Valkey / Redis (page image cache) |

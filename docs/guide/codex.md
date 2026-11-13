@@ -1,9 +1,10 @@
 # Grimoire Codex DB
 
-[Grimoire Codex DB](https://db.grimoirecodex.org) is a community catalogue of TTRPG
-systems and books, in the spirit of MusicBrainz or TMDB: anyone can add or
+[Grimoire Codex DB](https://db.grimoirecodex.org) is a community catalogue of tabletop
+game systems and books, in the spirit of MusicBrainz or TMDB: anyone can add or
 correct a record, and edits from newer contributors wait for review. Grimoire has
-it built in, so there is nothing to install.
+it built in, so there is nothing to install. Its [field guide](https://db.grimoirecodex.org/guide)
+explains what each field on a system or book means, for role-playing games and wargames.
 
 It stays **off and hidden until an admin sets `GRIMOIRE_CODEX_DB_API_TOKEN`** (see
 [Turning it on](#turning-it-on)). Until then Grimoire Codex DB does not appear in

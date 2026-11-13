@@ -2,7 +2,9 @@
 
 Guests let you share a single campaign with people who don't have full accounts, for example a player who's only joining one game. A guest is a **code-only account**: no password, no OIDC, and no access to the library, maps, tokens, audio, or search.
 
-A guest can only see the campaign they were invited to (and its shared resources, wiki, and schedule), and can edit only their **own** character name, character art, character sheet, session notes, and availability.
+A guest can only see the campaign they were invited to (and its shared resources, wiki, and schedule), and can edit only their **own** character name, character art, character sheet, session notes, and availability. A campaign's guest never reaches leagues or armies.
+
+Leagues have guests of their own, invited by the league's organiser the same way: a league's guest reaches their leagues, their own armies and the books the league shares with them, and never campaigns or characters. See [League guests](/guide/armies#league-guests).
 
 ## Enabling guest access
 
@@ -32,4 +34,4 @@ Guests log in from the login screen via **Have an invite code?**. This works eve
 
 ## Admin overview
 
-**Settings → People** lists every guest account (grouped separately from full users) with its nickname, the campaign it's attached to, and who invited it. From there an admin can **convert a guest to a permanent user**: give it a username (and a password when password auth is enabled) and it keeps its campaign membership and character. The password must meet the [password rules](/configuration/security#password-rules).
+**Settings → People** lists every guest account (grouped separately from full users) with its nickname, the campaign (or, for a league's guest, the league) it's attached to, and who invited it. From there an admin can **convert a guest to a permanent user**: give it a username (and a password when password auth is enabled) and it keeps its campaign membership and character. The password must meet the [password rules](/configuration/security#password-rules).
