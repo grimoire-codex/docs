@@ -1,6 +1,6 @@
 # API Reference
 
-**Version:** 0.1.0
+This reference follows the current release. A running server reports its own version at `GET /api/about` and in its OpenAPI schema (`info.version`).
 
 ## Interactive docs
 
@@ -13,6 +13,8 @@ With the server running, the API is self-documented via OpenAPI:
 | `http://localhost:9481/api/openapi.json` | Raw OpenAPI schema |
 
 These need a signed-in session by default (open them in a browser where you're signed in). Set [`API_DOCS`](/configuration/env-vars) to `public` to serve them to anyone, or `off` to turn them off.
+
+An `/api` address that no endpoint takes returns a JSON `404` (`{"detail": "Not Found"}`), and one called with a method it doesn't take returns a `405` with an `Allow` header. Neither returns the web app's page. The same goes for `/mcp` and `/opds` when they are turned off. These prefixes are matched ignoring case and extra leading slashes, so `/API/x` and `//api/x` get the same JSON `404`.
 
 ---
 
@@ -34,7 +36,7 @@ Access tokens are returned by `/api/auth/login` and expire after **30 minutes**;
 | Role | Permissions |
 |---|---|
 | `admin` | Full access including user management and app settings |
-| `gm` | Read + edit metadata, rescan library, manage campaigns |
+| `gm` | Read + edit metadata, rescan a single book, manage campaigns |
 | `player` | Read-only access |
 
 ### API keys
@@ -74,7 +76,9 @@ Each key has a name, an optional expiry (30, 90 or 365 days, or never), and a le
 | Tokens | Tokens, token folders and token frames |
 | Audio | Audio tracks, their covers and folders |
 | 3D models | 3D models and model folders |
+| Share links | Your public [share links](#share-links): create, list and revoke |
 | Campaigns | Your campaigns: members, sessions, wiki, resources and schedule |
+| Characters | Character sheets and the characters built on them, the content catalogue, and rulesets |
 | Downloads | Zip archive downloads |
 | File manager | Browse, upload, move, rename and delete library files |
 | Duplicates | Find, compare, link and merge duplicates |
@@ -109,6 +113,19 @@ Campaign and league responses never include a guest's invite code when the reque
 
 **MCP.** With `MCP_ENABLED=true`, keys also authenticate the [MCP server](/guide/mcp) at `POST /mcp`. Each MCP tool, resource and prompt checks the permission it needs, and a key is only shown the ones it can use.
 
+**OAuth for MCP.** With `MCP_OAUTH_ENABLED=true` as well, a hosted MCP client such as claude.ai can sign each user in instead of being given a key. What the user approves is stored as an API key row - a **grant**, listed with `kind: "app"` - and the client sends `Authorization: Bearer <access token>` to `/mcp`, where it is checked exactly as a key with the same permissions would be. Access tokens work on `/mcp` only: on `/api` a Bearer token is always a session. The OAuth endpoints live at the site root:
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/.well-known/oauth-protected-resource/mcp` | GET | Protected resource metadata (RFC 9728). A `401` from `/mcp` points here in `WWW-Authenticate` |
+| `/.well-known/oauth-authorization-server` | GET | Authorization server metadata (RFC 8414) |
+| `/register` | POST | Dynamic client registration (RFC 7591). A redirect address must be `https` (or `http` on loopback) and, with `MCP_OAUTH_REDIRECT_HOSTS` set, on one of those hosts |
+| `/authorize` | GET, POST | Starts a sign-in (PKCE `S256` required) and sends the browser to the consent page |
+| `/token` | POST | Exchanges a code or renews tokens. Access tokens last an hour, refresh tokens 30 days from their last use; each renewal replaces both |
+| `/revoke` | POST | Revokes a grant by either of its tokens (RFC 7009) |
+
+A refused access token gets `401` with `WWW-Authenticate: Bearer error="invalid_token"`, so the client renews it rather than starting a new sign-in. These endpoints share the sign-in rate limit.
+
 ### Calling the API from a browser
 
 Server-side tools like Homepage and grimoire-cli need nothing extra. Code that runs in a web page on another site, such as a Foundry VTT module, a browser extension or a dashboard, is blocked by the browser unless you allow that site with `CORS_ALLOWED_ORIGINS`:
@@ -131,10 +148,10 @@ List each origin exactly (`scheme://host[:port]`), separated by commas. It's off
 | `/api/auth/setup` | POST | None | First-run admin account creation. Body: `{username, password}`. The password must meet the [password rules](/configuration/security#password-rules) |
 | `/api/auth/login` | POST | None | Authenticate. Body: `{username, password}`. Returns `{token, user}`. Rate-limited per IP and per account; `429` once either is used up (see [Auth rate limiting](/configuration/security#auth-rate-limiting)) |
 | `/api/auth/guest-login` | POST | None | Exchange a campaign or league guest's invite code for a token. Body: `{code}`. Returns `{token, user, campaign_id, league_id}`; `user.guest_scope` is `ttrpg` for a campaign's guest and `wargame` for a league's. `403` while guest access is off, `401` for an unknown or expired code |
-| `/api/auth/me` | GET | any | Current user details, including `guest_scope` (`ttrpg`, `wargame`, or null for everyone but guests) |
-| `/api/auth/openid/login` | GET | None | Start OIDC login, redirects to IdP |
-| `/api/auth/openid/callback` | GET | None | OIDC callback |
-| `/api/auth/openid/discover` | POST | admin | Server-side discovery fetch. Body: `{issuer_url}` |
+| `/api/auth/me` | GET | any | Current user details, including `guest_scope` (`ttrpg`, `wargame`, or null for everyone but guests) and `sidebar_stats`, the user's own [sidebar stats layout](#sidebar-stats-layouts) (null when they follow the admin's default) |
+| `/api/auth/openid/login` | GET | None | Start OIDC login, redirects to IdP. With no authorization endpoint set and none from discovery, redirects to `/login?oidc_error=authorization%20endpoint%20not%20configured` instead |
+| `/api/auth/openid/callback` | GET | None | OIDC callback. A token or JWKS response that isn't a JSON object (an HTML error page, say) fails the sign-in with an error; a userinfo response like that is logged and ignored |
+| `/api/auth/openid/discover` | POST | admin | Server-side discovery fetch. Body: `{issuer_url}`. `502` when the issuer can't be reached or doesn't answer with a JSON object |
 
 ---
 
@@ -145,10 +162,10 @@ List each origin exactly (`scheme://host[:port]`), separated by commas. It's off
 | `/api/users` | GET | admin | List all users |
 | `/api/users` | POST | admin | Create a user. Body: `{username, password, role?, email?}`. The password must meet the [password rules](/configuration/security#password-rules). A username is trimmed and must be 2-100 characters with no control characters (`422` otherwise) - here, on guest conversion and at setup |
 | `/api/users/:id` | PATCH | admin | Update `role`, `password`, `allow_explicit`, or `email` |
-| `/api/users/:id` | DELETE | admin | Delete a user |
-| `/api/users/me/preferences` | PATCH | any | Update own `display_name`, `allow_explicit`, or `email`. While [OIDC](/guide/oidc) matches existing users by email, only an admin can change an email |
+| `/api/users/:id` | DELETE | admin | Delete a user. The campaigns they own go with them, along with their uploads on disk - banner, files, members' art, tokens and sheets - as do their own art, token and sheet in campaigns they play in |
+| `/api/users/me/preferences` | PATCH | any | Update own `display_name`, `allow_explicit`, `email`, or `sidebar_stats`: up to 10 `/api/stats` fields in order for your own [sidebar stats layout](#sidebar-stats-layouts), or `null` to follow the admin's default again. While [OIDC](/guide/oidc) matches existing users by email, only an admin can change an email |
 | `/api/users/me/password` | PATCH | any | Change own password. Body: `{current_password, new_password}`. The new password must meet the [password rules](/configuration/security#password-rules). `400` for a wrong `current_password`; wrong ones are counted per account (`ACCOUNT_RATE_LIMIT`), separately from failed sign-ins, and get `429` past the limit. Ends every other session |
-| `/api/users/me` | DELETE | any | Delete own account |
+| `/api/users/me` | DELETE | any | Delete own account (admins can't); campaigns and uploads go as for `DELETE /api/users/:id` |
 
 ---
 
@@ -156,25 +173,43 @@ List each origin exactly (`scheme://host[:port]`), separated by commas. It's off
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/stats` | GET | JWT, or an API key with Statistics: Read | Counts, page totals, library size |
+| `/api/stats` | GET | JWT, or an API key with Statistics: Read | Counts, page totals and sizes, split into role-playing and wargame where that applies |
 | `/api/scan-status` | GET | admin | Current scan state |
 | `/api/rescan` | POST | admin | Trigger a background rescan and reindex |
 | `/api/cancel-scan` | POST | admin | Gracefully stop the running scan |
 
-**Stats response:**
+**Stats response:** book counts and sizes cover only what the caller may see. A total is always its role-playing and wargame halves added up (`books` = `ttrpg_books` + `wargame_books`, and likewise for systems and pages). Item counts leave out variants, as the library views do, and the `*_variants` fields count them beside them; sizes include them. Sizes are in MB to one decimal place.
+
 ```json
 {
-  "game_systems": 12,
-  "books": 340,
-  "armory_books": 25,
+  "game_systems": 14,
+  "ttrpg_systems": 12,
+  "wargame_systems": 2,
+  "books": 380,
+  "ttrpg_books": 340,
+  "wargame_books": 40,
+  "armory_books": 40,
   "maps": 1500,
   "tokens": 800,
   "audio": 250,
   "models": 640,
-  "indexed_books": 320,
-  "total_pages": 45000,
-  "total_size_mb": 18240.5,
-  "library_size_mb": 41890.2
+  "book_variants": 12,
+  "map_variants": 1420,
+  "token_variants": 35,
+  "model_variants": 4,
+  "audio_variants": 0,
+  "indexed_books": 360,
+  "total_pages": 51000,
+  "ttrpg_pages": 45000,
+  "wargame_pages": 6000,
+  "total_size_mb": 20480.5,
+  "ttrpg_size_mb": 18240.5,
+  "wargame_size_mb": 2240.0,
+  "maps_size_mb": 9120.4,
+  "tokens_size_mb": 610.2,
+  "models_size_mb": 10211.7,
+  "audio_size_mb": 3467.4,
+  "library_size_mb": 43890.2
 }
 ```
 
@@ -193,14 +228,14 @@ To show library counts on an external dashboard, create an [API key](#api-keys) 
       headers:
         X-API-Key: your-key-here
       mappings:
-        - field: books
-          label: Books
+        - field: ttrpg_books
+          label: RPG books
+          format: number
+        - field: wargame_books
+          label: Wargame books
           format: number
         - field: maps
           label: Maps
-          format: number
-        - field: tokens
-          label: Tokens
           format: number
         - field: library_size_mb
           label: Size
@@ -213,17 +248,40 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 
 | Field | Meaning | Suggested `format` |
 |---|---|---|
-| `game_systems` | Number of game systems (top-level library folders) | `number` |
-| `books` | Total books (PDFs) | `number` |
-| `armory_books` | The wargame books among `books`, from the [Armory](/guide/library-structure#armory) | `number` |
+| `game_systems` | Every game system: `ttrpg_systems` + `wargame_systems` | `number` |
+| `ttrpg_systems` | Role-playing game systems (under `books/`) | `number` |
+| `wargame_systems` | Wargame systems, in the [Armory](/guide/library-structure#armory) | `number` |
+| `books` | Every book: `ttrpg_books` + `wargame_books` | `number` |
+| `ttrpg_books` | Role-playing books | `number` |
+| `wargame_books` | Wargame books, from the [Armory](/guide/library-structure#armory) | `number` |
+| `armory_books` | The older name for `wargame_books`; always the same number | `number` |
 | `maps` | Total maps | `number` |
 | `tokens` | Total tokens | `number` |
 | `audio` | Total audio tracks | `number` |
 | `models` | Total 3D models | `number` |
+| `book_variants` | Book variants (a printer-friendly cut, say), which `books` leaves out; `books` + `book_variants` is every book file | `number` |
+| `map_variants` | Map variants (a gridless or night version), which `maps` leaves out | `number` |
+| `token_variants` | Token variants, which `tokens` leaves out | `number` |
+| `model_variants` | 3D model variants, which `models` leaves out | `number` |
+| `audio_variants` | Audio variants, which `audio` leaves out | `number` |
 | `indexed_books` | Books with a searchable full-text index | `number` |
-| `total_pages` | Sum of all book page counts | `number` |
-| `total_size_mb` | Size of the books in MB (books only) | `float`, add `scale: 0.001` + `suffix: " GB"` to show GB |
-| `library_size_mb` | Size of the whole library in MB — books plus maps, tokens, audio, and models | `float`, add `scale: 0.001` + `suffix: " GB"` to show GB |
+| `total_pages` | Every book's pages: `ttrpg_pages` + `wargame_pages` | `number` |
+| `ttrpg_pages` | Pages of the role-playing books | `number` |
+| `wargame_pages` | Pages of the wargame books | `number` |
+| `total_size_mb` | Size of the books in MB (books only): `ttrpg_size_mb` + `wargame_size_mb` | `float`, add `scale: 0.001` + `suffix: " GB"` to show GB |
+| `ttrpg_size_mb` | Size of the role-playing books in MB | `float`, as above |
+| `wargame_size_mb` | Size of the wargame books in MB | `float`, as above |
+| `maps_size_mb` | Size of the maps in MB | `float`, as above |
+| `tokens_size_mb` | Size of the tokens in MB | `float`, as above |
+| `models_size_mb` | Size of the 3D models in MB | `float`, as above |
+| `audio_size_mb` | Size of the audio in MB | `float`, as above |
+| `library_size_mb` | Size of the whole library in MB: books plus maps, tokens, audio, and models | `float`, add `scale: 0.001` + `suffix: " GB"` to show GB |
+
+### Sidebar stats layouts
+
+The sidebar's footer shows up to 10 of these fields, in an order you choose; **All stats** under it (in the **More** drawer on a phone) opens every one. People choose their own under **Settings → Preferences → Sidebar stats**, and an admin sets everyone's default under **Settings → Sidebar**. A layout is a list of field names, and may name any field above except `armory_books`. The admin's layout (`sidebar_stats` in `PATCH /api/settings`, also returned by `/api/settings/ui`) is everyone's default; each user may save their own with `PATCH /api/users/me/preferences`, and `/api/auth/me` returns it. Unknown fields, repeats and more than 10 are refused with `400`.
+
+The older `show_stat_*` settings still work. Until an admin saves a layout, the default is built from them in their old order, and each one reads as whether its stat is in the default layout. Setting one after a layout is saved adds its stat at the end or removes it.
 
 ---
 
@@ -231,8 +289,8 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/api/systems` | GET | any | List all systems with book counts. `game_type=ttrpg` lists the role-playing systems in `books/`, `game_type=wargame` the [Armory](/guide/library-structure#armory)'s; both when omitted. Each system carries its `game_type` |
-| `/api/systems/:id` | GET | any | System detail + full book list. `include_books=false` returns the summary alone |
+| `/api/systems` | GET | any | List all systems with book counts. `game_type=ttrpg` lists the role-playing systems in `books/`, `game_type=wargame` the [Armory](/guide/library-structure#armory)'s; both when omitted. Each system carries its `game_type`. A system inside a container the caller cannot see lists at the top level for them, with empty `parent_id`/`parent_name` |
+| `/api/systems/:id` | GET | any | System detail + full book list. `include_books=false` returns the summary alone. For a caller who cannot see an enclosing container, `scope_path` and the books' `relative_path` leave out that container's folder |
 | `/api/systems/:id/books` | GET | any (not guest) | One page of the system's books matching the shelf filters. Query: filters, `category` + `folder` (one folder of the grouped shelf), `sort`, `order`, `limit`, `offset` |
 | `/api/systems/:id/book-groups` | GET | any (not guest) | Every category and subfolder holding matching books, with counts |
 | `/api/systems/:id/book-facets` | GET | any (not guest) | The tags, genres, product-code prefixes and categories on the shelf |
@@ -248,8 +306,8 @@ Homepage shows up to four fields per row; pick the counts you care about from th
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
 | `/api/books` | GET | any | Paginated book list. Query: `system_id`, `category`, `limit` (max 500), `offset`, `sort` (`title` or `added_at`), `order` (`asc`/`desc`; `added_at` defaults to newest first), `added_since` (ISO-8601, UTC if no offset; one whose offset carries it past either end of the calendar in UTC is clamped to that end). Each book carries `added_at` - when it first appeared in the library, or `null` for items from the first import of a new install (and older rows with no date). Poll `sort=added_at&added_since=<last poll>` to find new additions. |
-| `/api/books/:id` | GET | any | Book detail |
-| `/api/books/:id` | PATCH | gm/admin | Update book metadata. Changing `category` also moves the file into that category's folder, so a category can't contain `/`, `\`, `..` or a control character (a line break, a tab), start with a dot, be blank, or run past 100 characters or 255 bytes (`422`). Spaces around it are trimmed first |
+| `/api/books/:id` | GET | any | Book detail. For a system the caller can't see, or a visible system inside a container they can't see, `relative_path` leaves out the hidden folders |
+| `/api/books/:id` | PATCH | gm/admin | Update book metadata. Changing `category` also moves the file into that category's folder, so a category can't contain `/`, `\`, `..`, a control character (a line break, a tab), a Unicode line or paragraph separator or an invisible format character (a zero-width space, a direction mark), start with a dot, be blank, or run past 100 characters or 255 bytes (`422`). Spaces around it are trimmed first. `language` is one of a fixed list, stored lowercase (`english`): any case, an ISO 639 code (`en`, `pt-BR`) or the language's own name (`Deutsch`) is stored as the language it names, and anything else as `""` (not set) rather than refused; longer than 200 characters is a `422` |
 | `/api/books/:id/systems` | GET | any (not guest) | The other systems this book is linked onto, besides the one its folder gives it |
 | `/api/books/:id/systems` | POST | gm/admin | Show the book on another system's shelf too. Body: `{system_id}`. 400 for its own system, a version of a book, or across the library/armory divide |
 | `/api/books/:id/systems/:system_id` | DELETE | gm/admin | Take the book off that system's shelf. 404 when it was not linked there |
@@ -486,7 +544,7 @@ stale set load with what remains instead of failing.
 | `/api/campaigns` | POST | any | Create campaign |
 | `/api/campaigns/:id` | GET | owner or member | Campaign detail |
 | `/api/campaigns/:id` | PATCH | owner or admin | Update campaign |
-| `/api/campaigns/:id` | DELETE | owner or admin | Delete campaign |
+| `/api/campaigns/:id` | DELETE | owner or admin | Delete campaign, including its uploads on disk (banner, campaign files, members' art, tokens and sheets) |
 
 ### Members
 
@@ -494,7 +552,7 @@ stale set load with what remains instead of failing.
 |---|---|---|---|
 | `/api/campaigns/:id/invite` | POST | owner or admin | Invite a user. Body: `{user_id}` |
 | `/api/campaigns/:id/members/:user_id` | PATCH | member or owner | Accept/decline or set character name |
-| `/api/campaigns/:id/members/:user_id` | DELETE | owner, admin, or self | Remove member |
+| `/api/campaigns/:id/members/:user_id` | DELETE | owner, admin, or self | Remove member, and the art, token and sheet they uploaded to it. |
 
 ### Sessions
 
@@ -502,7 +560,8 @@ stale set load with what remains instead of failing.
 |---|---|---|---|
 | `/api/campaigns/:id/sessions` | GET | member or owner | List sessions |
 | `/api/campaigns/:id/sessions` | POST | member or owner | Create session. Body: `{session_date, title?}` |
-| `/api/campaigns/:id/sessions/:sid` | PATCH | owner or admin | Update title |
+| `/api/campaigns/:id/sessions/search` | GET | member or owner | Search session notes. Query: `q` (1-200 characters). Returns `{results: [{session_id, session_date, session_title, note_type, author_id, author_username, author_display_name, snippet}], query}` by session date. GM internal notes are searched only for the owner |
+| `/api/campaigns/:id/sessions/:sid` | PATCH | owner or admin | Update title. Members, guests included, get `403` |
 | `/api/campaigns/:id/sessions/:sid` | DELETE | owner or admin | Delete session |
 | `/api/campaigns/:id/sessions/:sid/notes/player` | PUT | member or owner | Save player note. Body: `{content}` |
 | `/api/campaigns/:id/sessions/:sid/notes/gm` | PUT | owner or admin | Save GM notes. Body: `{internal_content?, external_content?}` |
@@ -527,23 +586,23 @@ stale set load with what remains instead of failing.
 }
 ```
 
-`frequency` values: `weekly`, `biweekly`, `monthly`, `custom`. Days are 0 (Monday) – 6 (Sunday).
+`frequency` values: `weekly`, `biweekly`, `monthly`, `custom`. Days are 0 (Monday) – 6 (Sunday); duplicates are dropped, and a monthly schedule uses the first day. A time is `HH:MM` (`00:00`–`23:59`), `timezone` must name an IANA zone the server knows, `monthly_week` is `1`–`4` or `-1` for last, and `custom_dates` are at most 600 dates within ten years of today. A value outside these rules is `400`, naming the field. A schedule stored before these checks still reads: dates it cannot use are left out, and a bad time publishes all-day events.
 
 ### Availability
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
 | `/api/campaigns/:id/availability` | GET | member or owner | Availability for next 10 scheduled sessions |
-| `/api/campaigns/:id/availability/:date` | PUT | member or owner | Set own availability. Body: `{status}` |
-| `/api/campaigns/:id/availability/:date/cancel` | PUT | owner or admin | Toggle session cancellation |
+| `/api/campaigns/:id/availability/:date` | PUT | member or owner | Set own availability. Body: `{status, is_cancelled?, user_id?}`. `user_id` and `is_cancelled` are GM-only: `user_id` sets that person's availability instead, and must name the owner or an accepted member (`404` otherwise) |
+| `/api/campaigns/:id/availability/:date/cancel` | PUT | owner | Toggle session cancellation. Anyone else, an admin included, gets `403` |
 
 Statuses: `available`, `tentative`, `unavailable`
 
 ### Wiki map pages
 
-A wiki page's title is written into the `[[links]]` that point at it, so it can't contain `|`, `[`, `]` or a line break: creating or renaming a page to one is a `400`. A title already stored with one is kept on a save that doesn't rename the page, and a title that arrives some other way (a link's auto-created stub, a pin's new target, an import, a template's default) has each run of those characters turned into a space.
+A wiki page's title is written into the `[[links]]` that point at it, so it can't contain `|`, `[`, `]` or a line break: creating or renaming a page to one is a `400`. A title already stored with one is kept on a save that doesn't rename the page, and a title that arrives some other way (a link's auto-created stub, a pin's new target, an import, a template's default) has each run of those characters turned into a space. A link's target and label hold no `[[`: a second opener starts a new link, so `[[draft [[Castle]]` links to `Castle`. A page body, and a note template's, holds at most 1,000,000 characters (`422` otherwise, and an import naming the page).
 
-A page with `page_type: "map"` is built around one map: `map_id` (an image map linked to the campaign as a resource the caller can see) or `map_file_id` (one of the campaign's own image files). Page detail returns `map` (`{source, id, name, has_thumbnail}`, `source` one of `library`, `file`, `missing`, `none`) and the `pins` the caller may see. A pin is `{id, x, y, label, target_page_id, target_title, icon, icon_color, visibility, sort_order, can_edit, ...}`, with `x`/`y` as fractions (0-1) of the picture, and is returned only to someone who can see both the map page and its target. A pin with `visibility: "gm"` is the campaign GM's alone.
+A page with `page_type: "map"` is built around one map: `map_id` (an image map linked to the campaign as a resource the caller can see) or `map_file_id` (one of the campaign's own image files). Page detail returns `map` (`{source, id, name, has_thumbnail}`, `source` one of `library`, `file`, `missing`, `none`, or `hidden` for a picture this caller may not see, sent with no `id` or `name`) and the `pins` the caller may see. A library map is shown to the campaign owner and to whoever its campaign link is visible to, so a map linked as `gm` stays the GM's on a public map page. A pin is `{id, x, y, label, target_page_id, target_title, icon, icon_color, visibility, sort_order, can_edit, ...}`, with `x`/`y` as fractions (0-1) of the picture, and is returned only to someone who can see both the map page and its target. A pin with `visibility: "gm"` is the campaign GM's alone.
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
@@ -551,7 +610,7 @@ A page with `page_type: "map"` is built around one map: `map_id` (an image map l
 | `/api/campaigns/:id/wiki/:page_id/pins/:pin_id` | PATCH | anyone who can edit the page and see the pin | Move or edit a pin; every field optional. `target_page_id: ""` unlinks it; `target_title` relinks by title. `404` for a pin the caller can't see |
 | `/api/campaigns/:id/wiki/:page_id/pins/:pin_id` | DELETE | anyone who can edit the page and see the pin | Remove a pin |
 
-When a map is deleted from the library through the app, each campaign using it gets its own copy as a campaign file where the upload settings allow, and its map pages, `[[map:ID]]` embeds and map resource are pointed at the copy. Otherwise its map pages read as `missing`, with their pins intact. [`GET /api/files/campaign-map-copies`](#file-manager-admin-only) previews this.
+When a map is deleted from the library through the app, each campaign using it gets its own copy as a campaign file where the upload settings allow, and its map pages, `[[map:ID]]` embeds and map resource are pointed at the copy. The copy is read by the people who could see the map. Otherwise its map pages read as `missing`, with their pins intact. [`GET /api/files/campaign-map-copies`](#file-manager-admin-only) previews this.
 
 ### GM screen
 
@@ -571,7 +630,7 @@ A campaign's [GM screen](/guide/gm-screen) is a board of built-in tools on a twe
 | `/api/campaigns/:id/gm-screen/import` | POST | owner | Body: `{document, replace?}`. Puts a board document on this campaign. `400` for one with no panels or a panel of unknown kind |
 | `/api/campaigns/:id/gm-screen/presets` | GET | owner | The community preset catalogue, read from `gm-screens/index.json` beside the configured add-on sources. `403` when community installs are disabled |
 | `/api/campaigns/:id/gm-screen/presets/apply` | POST | owner | Body: `{preset_id, index_url?, replace?}`. Downloads the preset, checks it against the catalogue's digest and puts it on the board. `404` for a preset the catalogue doesn't list, `502` for one that fails to download or verify |
-| `/api/campaigns/:id/gm-screen/party` | GET | owner | The campaign's characters for the party panel, with each one's scalar fields and computed values, and `editable` for those the GM may change (through `PUT /api/characters/:id`) |
+| `/api/campaigns/:id/gm-screen/party` | GET | owner | The campaign's characters for the party panel, with each one's scalar fields and computed values (worked out against the GM's copy of the sheet; for a sheet the GM hasn't installed, only its stored fields), and `editable` for those the GM may change (through `PUT /api/characters/:id`) |
 
 Writes follow the campaign's lock like every other campaign write.
 
@@ -587,7 +646,7 @@ Sheets (schemas) and characters are stored **per user**, so any signed-in user �
 |---|---|---|---|
 | `/api/characters/schemas` | GET | any | Installed sheets, each with a `character_count` |
 | `/api/characters/schemas` | POST | any | Install a pasted sheet. Body: `{text}` (JSON or YAML, without YAML aliases, at most 512 KB and 100 levels deep) or `{document}`, plus optional `layout` and `styles`. 400 names the problem if it does not validate |
-| `/api/characters/schemas/browse` | GET | any | The community sheet catalogue, each marked `installed` |
+| `/api/characters/schemas/browse` | GET | any | The community sheet catalogue, each marked `installed`. `errors` lists sources that could not be read; for anyone but an admin their details, `index_url` and `sources` are left empty, since the sources are server configuration |
 | `/api/characters/schemas/install/:sheet_id` | POST | any | Install a sheet from the catalogue |
 | `/api/characters/schemas/:schema_id` | GET | any | One sheet with its validated `document` |
 | `/api/characters/schemas/:schema_id` | DELETE | any | Uninstall a sheet. Characters built on it are kept |
@@ -623,7 +682,7 @@ Sheets (schemas) and characters are stored **per user**, so any signed-in user �
 | `/api/content/packs` | GET | any | Installed content packs with their licence and credit |
 | `/api/content/packs/reload` | POST | admin | Re-read every pack from disk |
 | `/api/content/:schema_id/types` | GET | any | The content types a sheet declares, with entry counts |
-| `/api/content/:schema_id/:content_type` | GET | any | Browse: `search`, `filter[field]=value`, `sort`, `page`, `page_size` |
+| `/api/content/:schema_id/:content_type` | GET | any | Browse: `search`, `filter[field]=value`, `sort`, `page`, `page_size`. Each facet in `filters_available` is narrowed by every other active filter but never by itself, so a choice stays reversible; a facet with more than 500 values is left out |
 | `/api/content/:schema_id/:content_type/:entry_id` | GET | any | One entry in full |
 
 ### Rulesets
@@ -634,7 +693,7 @@ A campaign ruleset is read by everyone at that table and edited by the campaign'
 |---|---|---|---|
 | `/api/rulesets` | GET | any | Rulesets you can read. `schema_id` and `campaign_id` filter |
 | `/api/rulesets` | POST | campaign owner, or admin for a server ruleset | Create one |
-| `/api/rulesets/packs/browse` | GET | any | The community content-pack catalogue, with `installed` and `update_available` |
+| `/api/rulesets/packs/browse` | GET | any | The community content-pack catalogue, with `installed` and `update_available`. Source details are admin-only, as for the sheet catalogue |
 | `/api/rulesets/packs/install/:pack_id` | POST | admin | Install or update a content pack |
 | `/api/rulesets/packs/:pack_id` | DELETE | admin | Uninstall a content pack |
 | `/api/rulesets/:id` | GET / PUT / DELETE | read: reader; write: editor | One ruleset |
@@ -655,7 +714,7 @@ The [army builder and leagues](/guide/armies) for wargames. Not available to a c
 | `/api/armies` | GET | any (league guests too) | Your own armies, most recently changed first |
 | `/api/armies` | POST | any (league guests too) | Build an army by hand: `{name, game_system_id?, faction_id?, points_limit?, notes?, units}` |
 | `/api/armies/import` | POST | any (league guests too) | Import a BattleScribe / New Recruit roster: multipart `file` (`.ros` or `.rosz`, up to 20 MB), optional `name`. Matched to a wargame system and faction by name; the file is kept as uploaded |
-| `/api/armies/games` | GET | any (league guests too) | The wargames an army can be set to: `[{id, name, parent_id}]`. A league's guest gets only their leagues' games and those games' editions |
+| `/api/armies/games` | GET | any (league guests too) | The wargames an army can be set to: `[{id, name, parent_id}]`, `parent_id` null when that container is hidden from the caller. A league's guest gets only their leagues' games and those games' editions |
 | `/api/armies/games/:system_id/factions` | GET | any (league guests too) | `{factions: [{id, name, parent_id, depth}]}`, parents before their sub-factions. `404` for a game the caller may not choose |
 | `/api/armies/:id` | GET / PATCH / DELETE | read: owner, admin, the league's people; write: owner, admin | One army. An imported list's units are read-only |
 | `/api/armies/:id/export` | GET | as GET | `?format=text` (default) the list as text; `?format=roster` the uploaded file |
@@ -674,7 +733,7 @@ The [army builder and leagues](/guide/armies) for wargames. Not available to a c
 | `/api/leagues/:id/games/:game_id` | PUT / DELETE | its players, whoever logged it, organiser | Edit or delete a game |
 | `/api/leagues/:id/books` | GET | the league's people | Books shared with the league that the caller may open. The organiser sees every one, with `shared_user_ids`; a member the `public` ones and the `private` ones shared with them |
 | `/api/leagues/:id/books` | POST | organiser, admin | Share a book: `{book_id, visibility?, shared_user_ids?}`. `visibility` is `public` (every member), `private` (the members in `shared_user_ids`) or `organizer` (the default). A book restricted by its access level is kept at `organizer`. `409` for one already shared |
-| `/api/leagues/:id/books/search` | GET | organiser, admin | `?q=` (2+ characters): up to 20 library books the caller can open whose titles contain it, the league's own game first |
+| `/api/leagues/:id/books/search` | GET | organiser, admin | `?q=` (2+ characters): up to 20 library books the caller can open whose titles contain it, the league's own game first; `game_system_name` is blank for a system the caller cannot see |
 | `/api/leagues/:id/books/order` | PUT | organiser, admin | Reorder: `{ordered_ids}` |
 | `/api/leagues/:id/books/:resource_id` | PATCH / DELETE | organiser, admin | Change a shared book's `visibility` or `shared_user_ids`, or stop sharing it |
 | `/api/leagues/:id/guests` | GET | organiser, admin | The league's guests: `[{user_id, nickname, guest_code, army}]` |
@@ -704,16 +763,19 @@ A folder restriction only ever adds one: a book with no access level of its own 
 
 ## API keys
 
-Manage your [API keys](#api-keys). These need a login: a key can never manage keys.
+Manage your [API keys](#api-keys), and answer MCP OAuth sign-ins. These need a login: a key can never manage keys.
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/api/api-keys` | GET | List your keys (never the key itself). Admins can add `?all=true` for everyone's |
+| `/api/api-keys` | GET | List your keys (never the key itself). Admins can add `?all=true` for everyone's. Each has a `kind`: `key`, or `app` for an MCP client you approved through OAuth, with its `client_name` and `redirect_host` |
 | `/api/api-keys/permissions` | GET | The permissions your role can grant, with descriptions and the levels each offers |
 | `/api/api-keys` | POST | Create a key. Body: `{name, permissions?, expires_at?}`, where `permissions` is `{permission: "none" \| "read" \| "write"}` and `"*"` means all permissions. Returns `{api_key, key}`: `key` is the full key, returned only here and by regenerate |
 | `/api/api-keys/:id` | PATCH | Rename your key or change its permissions or expiry (`expires_at: null` means never) |
-| `/api/api-keys/:id/regenerate` | POST | Issue a new key with the same name and permissions. The old key stops working immediately |
-| `/api/api-keys/:id` | DELETE | Revoke your key. Admins can revoke anyone's |
+| `/api/api-keys/:id/regenerate` | POST | Issue a new key with the same name and permissions. The old key stops working immediately. `409` for an app: revoke it instead |
+| `/api/api-keys/:id` | DELETE | Revoke your key or app. Admins can revoke anyone's. A revoked app can be approved again; to stop that, turn API keys off for the user |
+| `/api/oauth/requests/:request_id` | GET | MCP sign-in (`MCP_OAUTH_ENABLED`, else `404`): what a pending request asks for. `404` once it has expired (10 minutes) or been answered |
+| `/api/oauth/requests/:request_id/approve` | POST | Approve it as yourself. Body: `{permissions?}` as for a key; omitted is Read on everything your role can read. Returns `{redirect_to}` |
+| `/api/oauth/requests/:request_id/deny` | POST | Deny it. Returns `{redirect_to}` with `error=access_denied` |
 
 ---
 

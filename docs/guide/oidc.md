@@ -24,7 +24,7 @@ Open **Settings → Sign-in** as an admin:
 | **Advanced Permissions Claim** | Name of the claim containing a permissions object, e.g. `{viewNSFW: bool, campaignAccess: bool, apiKeys: bool}`. When set, must be present in every login or access is denied. See [Permissions claim](#permissions-claim). |
 | **Match Existing Users By** | Link an existing local account to the OIDC subject by `email` or `username` on first login. Later logins always match by the stable subject claim. Only accounts that aren't linked to a provider yet are considered, and campaign guest accounts never are. See [Matching existing users](#matching-existing-users). |
 | **Auto-launch** | Automatically redirect to the IdP when visiting `/login`. Suppress with `?autoLaunch=0`. |
-| **Auto-register** | Automatically create local accounts on first OIDC login. |
+| **Auto-register** | Automatically create local accounts on first OIDC login. The new account is named after the first of `preferred_username`, `nickname`, `name` and the part of `email` before the `@` that makes a valid username (2 to 100 characters, no control characters), or `oidc-` and the start of the subject if none does. A name already taken gets the start of the subject added to it. |
 
 ### Matching existing users
 
@@ -94,8 +94,10 @@ Any OIDC setting can be pinned via an environment variable (e.g. `OIDC_ENABLED=t
 - First-run setup always uses username + password. The OIDC button appears only after the IdP is fully configured.
 - **Password Authentication** in **Settings → Sign-in** can only be turned off once OpenID Connect is configured, and OpenID Connect can't be turned off while password sign-in is off - so there is always a way in. `ALLOW_PASSWORD_AUTHENTICATION` pins it regardless.
 - Logging out suppresses the next auto-launch so you don't immediately bounce back to the IdP.
+- **Back to the page you opened.** A link opened while signed out - a book, a campaign page - opens once the provider sends you back, for the button and auto-launch alike. A sign-in started from the home page, the login page or a guest invite goes to the home page. Grimoire only ever returns to a page on itself, never another site.
 - A sign-in has to finish in the browser that started it, within 10 minutes. If the provider sends you back to Grimoire in a different browser or app (some mobile mail apps open links in their own browser), you'll see "sign-in was started in another browser"; start again from the login page there.
 - The login button text is configurable (e.g. "Sign in with Acme SSO") via the `OIDC_BUTTON_TEXT` env var or in-app setting, and so is its look - see [Style the sign-in button](#style-the-sign-in-button).
+- **A provider answering with something other than JSON** - an HTML error page from a proxy in front of it, say - fails the sign-in with a message on the login page ("token exchange failed", or "the sign-in could not be verified" when it's the signing keys), and the server log says which response it was. Without a working discovery document and no endpoints filled in, the login page shows "authorization endpoint not configured".
 
 ## Provider-specific guides
 

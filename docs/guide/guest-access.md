@@ -2,7 +2,7 @@
 
 Guests let you share a single campaign with people who don't have full accounts, for example a player who's only joining one game. A guest is a **code-only account**: no password, no OIDC, and no access to the library, maps, tokens, audio, or search.
 
-A guest can only see the campaign they were invited to (and its shared resources, wiki, and schedule), and can edit only their **own** character name, character art, character sheet, session notes, and availability. A campaign's guest never reaches leagues or armies.
+A guest can only see the campaign they were invited to (and its shared resources, wiki, and schedule). Inside it they take part like any other member: they set their **own** character name, character art, character sheet, session notes, and availability, and they can write wiki pages and add sessions. They cannot rename or delete sessions, or edit pages someone else wrote unless that page grants them write access. A campaign's guest never reaches leagues or armies.
 
 Leagues have guests of their own, invited by the league's organiser the same way: a league's guest reaches their leagues, their own armies and the books the league shares with them, and never campaigns or characters. See [League guests](/guide/armies#league-guests).
 

@@ -35,25 +35,25 @@ A browser that has signed in to an account before keeps its own count (it holds 
 | `ACCOUNT_RATE_LIMIT` | `20/hour` | Per-account and per-share-link limit. Same format. |
 | `RATE_LIMIT_ENABLED` | `true` | Set to `false` to turn off auth rate limiting entirely. |
 | `TRUST_FORWARDED_FOR` | `true` | Whether to read `X-Forwarded-For` (and `X-Forwarded-Proto`) from a trusted proxy. `false` ignores both headers from everyone. Recommended when Grimoire is exposed without a proxy and every client arrives from an address in the trust list; see below. |
-| `TRUSTED_PROXIES` | loopback and Docker networks | Addresses or CIDR ranges whose `X-Forwarded-For` is read. Default `127.0.0.0/8,::1,172.16.0.0/12`. See below. |
+| `TRUSTED_PROXIES` | loopback, Docker and Podman networks | Addresses or CIDR ranges whose `X-Forwarded-For` is read. Default `127.0.0.0/8,::1,172.16.0.0/12,10.88.0.0/16,10.89.0.0/16`. See below. |
 
 ### Behind a reverse proxy
 
 `X-Forwarded-For` is only read from connections that come from a **trusted proxy**, and it is read from the right: each proxy appends the address it received the request from, so the right-most address that isn't itself a trusted proxy is the client. A direct connection from anywhere else is keyed on its own address, whatever header it sends, so a spoofed header can't sidestep the limit.
 
-The default trust list - loopback plus `172.16.0.0/12`, the range Docker gives its bridge networks - covers a proxy or tunnel on the same host or in the same Docker Compose project. nginx, Nginx Proxy Manager, SWAG, Traefik, Caddy, Cloudflare Tunnel and `tailscale serve` need no setting. The same address is what **Active Sessions** shows for each device.
+The default trust list - loopback plus `172.16.0.0/12`, the range Docker gives its bridge networks, and `10.88.0.0/16` and `10.89.0.0/16`, the ranges Podman gives its default network and the networks `podman network create` and podman-compose make - covers a proxy or tunnel on the same host or in the same Docker or Podman Compose project. nginx, Nginx Proxy Manager, SWAG, Traefik, Caddy, Cloudflare Tunnel and `tailscale serve` need no setting. The same address is what **Active Sessions** shows for each device.
 
-The list is matched on the connecting address, so **any** client connecting from those ranges is treated as a proxy and its `X-Forwarded-For` is believed: it can name any address in the header and is rate-limited and listed in Active Sessions under it. That is why the default stops at loopback and Docker's own networks rather than taking in your whole LAN. To narrow it further, set `TRUSTED_PROXIES` to just your proxy's address, or with no proxy set `TRUST_FORWARDED_FOR=false`.
+The list is matched on the connecting address, so **any** client connecting from those ranges is treated as a proxy and its `X-Forwarded-For` is believed: it can name any address in the header and is rate-limited and listed in Active Sessions under it. That is why the default stops at loopback and Docker's and Podman's own networks rather than taking in your whole LAN. If your LAN itself uses `10.88.x.x` or `10.89.x.x`, set `TRUSTED_PROXIES` to just your proxy's address. To narrow it further, set `TRUSTED_PROXIES` to just your proxy's address, or with no proxy set `TRUST_FORWARDED_FOR=false`.
 
-- **Proxy on another machine** - another box on your LAN, a Kubernetes ingress, a Podman network (`10.88.0.0/16`, `10.89.0.0/16`, ...), or a VPS reaching your server over the internet: add its address (or its network's range) to `TRUSTED_PROXIES`. Until you do, every client behind it shares one bucket and shows up in Active Sessions under the proxy's address, and Grimoire logs a one-time line naming the private address whose `X-Forwarded-For` it ignored.
+- **Proxy on another machine** - another box on your LAN, a Kubernetes ingress, a Podman network outside its default ranges (`10.90.0.0/15` and up), or a VPS reaching your server over the internet: add its address (or its network's range) to `TRUSTED_PROXIES`. Until you do, every client behind it shares one bucket and shows up in Active Sessions under the proxy's address, and Grimoire logs a one-time line naming the private address whose `X-Forwarded-For` it ignored.
 - **Cloudflare's proxy (orange cloud) in front of your own reverse proxy**, without Cloudflare Tunnel: requests reach your proxy from Cloudflare's addresses, so add [Cloudflare's IP ranges](https://www.cloudflare.com/ips/) to `TRUSTED_PROXIES`, keeping the default ranges. Until you do, clients share Cloudflare's addresses for rate limiting and Active Sessions shows them. Cloudflare Tunnel needs nothing.
 - **No proxy at all:** nothing has to be set. Set `TRUST_FORWARDED_FOR=false` so no client can name its own address.
-- **A port forwarder that hides client addresses** - Docker Desktop, Docker's userland proxy, or rootless Podman or Docker using rootlesskit - exposed directly: the forwarder replaces each client's address with an internal one. If that address falls in the trust list (every client then shows up in Active Sessions under the same `172.x` address), every client - including one reaching the published port from the internet - counts as a trusted proxy and can claim a fresh address on each request. **Set `TRUST_FORWARDED_FOR=false`** on these setups. All clients then share one per-IP bucket and Active Sessions shows the internal address; the per-account and per-link limits above still apply. To see real addresses instead, put a reverse proxy or tunnel in front and keep the header trusted (ideally with `TRUSTED_PROXIES` narrowed to the proxy), or on recent Podman set `rootless_port_forwarder = "pasta"` in `containers.conf`, which keeps the client's own address.
+- **A port forwarder that hides client addresses** - Docker Desktop, Docker's userland proxy, or rootless Podman or Docker using rootlesskit - exposed directly: the forwarder replaces each client's address with an internal one. If that address falls in the trust list (every client then shows up in Active Sessions under the same `172.x`, `10.88.x` or `10.89.x` address), every client - including one reaching the published port from the internet - counts as a trusted proxy and can claim a fresh address on each request. **Set `TRUST_FORWARDED_FOR=false`** on these setups. All clients then share one per-IP bucket and Active Sessions shows the internal address; the per-account and per-link limits above still apply. To see real addresses instead, put a reverse proxy or tunnel in front and keep the header trusted (ideally with `TRUSTED_PROXIES` narrowed to the proxy), or on recent Podman set `rootless_port_forwarder = "pasta"` in `containers.conf`, which keeps the client's own address.
 
 ```yaml
 environment:
   # Keep the defaults and add a proxy on another machine
-  - TRUSTED_PROXIES=127.0.0.0/8,::1,172.16.0.0/12,203.0.113.10
+  - TRUSTED_PROXIES=127.0.0.0/8,::1,172.16.0.0/12,10.88.0.0/16,10.89.0.0/16,203.0.113.10
 ```
 
 ### Multiple replicas
@@ -87,6 +87,12 @@ A [guest's](/guide/guest-access) session ends once guest access is turned off or
 `SECRET_KEY` signs every login session. Leave it unset and Grimoire generates a random one on first start and keeps it in the data volume. If you set it yourself, use a private random value of at least 32 characters, such as the output of `openssl rand -hex 32`.
 
 Grimoire **refuses to start** with a key that has appeared in its own documentation or example files (`change-me` and the like), because anyone who knows the key can sign in as any user. A key shorter than 32 characters still starts, with a warning in the log. See the [FAQ](/faq#grimoire-won-t-start-and-the-log-mentions-secret-key) if you hit the error.
+
+## Feed and share tokens at rest
+
+OPDS feed URLs, calendar subscription URLs and share links each carry a token that works on its own, with no login. None of them is stored as itself. The database keeps an HMAC-SHA256 of each token, keyed by `SECRET_KEY`, which requests are matched on, and a copy of the token encrypted under a second key derived from `SECRET_KEY`, so you can copy your feed URL or a share link again later. Guest invite codes are kept the same way. API keys and refresh tokens are stored as hashes too, and so is every secret of [MCP OAuth sign-in](/api#api-keys) (`MCP_OAUTH_ENABLED`): client secrets, authorization codes, consent request ids, and access and refresh tokens. A renewal's new tokens are derived from the refresh token presented with an HMAC keyed by `SECRET_KEY`, so two renewals sent at once get the same pair; changing `SECRET_KEY` only affects a renewal in flight.
+
+A [backup](/configuration/backups) therefore holds no usable feed or share URL. Because they are keyed on `SECRET_KEY`, **changing it ends every feed and share link, and every guest invite code**, just as it signs everyone out - and so does restoring a backup on a server with a different key.
 
 ## Security headers
 

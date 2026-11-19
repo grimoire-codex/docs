@@ -10,8 +10,19 @@ Grimoire renders PDF pages server-side as WebP images, keeping the viewer fast o
 - **Spread mode**: display two pages side-by-side (even/odd offset toggle). **Join pages**, under Spread in the **⋮** menu (or the **Join pages** button in the PDF map viewer), draws the two pages as one image with no gap between them - the way a map or illustration printed across both pages looks in the book. It is remembered per book and per map
 - **Table of contents**: jump directly to any chapter
 - **Bookmarks**: save page bookmarks or text-selection highlights, with inline highlight overlay
-- **Native PDF viewer**: switch to the browser's built-in PDF viewer any time via the toolbar
+- **PDF view**: pick **PDF** in the **⋮** menu to read the file itself rather than rendered pages. On a computer this is the browser's built-in PDF viewer. Phones and tablets can't show a PDF that way, so there Grimoire opens its own - see below
 - **Download**: download the original PDF file
+
+## PDF view on phones and tablets
+
+On a phone or tablet, PDF view opens Grimoire's built-in PDF viewer. The whole book scrolls as one continuous column, text can be selected and copied, and links inside the PDF work.
+
+- **Zoom**: pinch, or use the **−** / **+** buttons. The **↔** button fits the page to the width of the screen again
+- **Pages**: the page box, contents and bookmarks follow along as you scroll, and jumping to a page scrolls the viewer there
+- **Annotate**: pick **Highlight**, **Add text** or **Draw**, then mark up the page. **Read** puts the pen down again
+- **Save a copy**: appears once you have annotated something, and downloads the PDF with your annotations written into it. Annotations are not stored in Grimoire - Grimoire asks before you leave the book or switch view with annotations you have not saved
+
+Phones have no room for **Spread**, so the **⋮** menu offers **Page** and **PDF** there.
 - **Export pages & cut-outs**: save chosen pages, or areas cut out of them, as their own files - see below
 
 ## Exporting pages and cut-outs

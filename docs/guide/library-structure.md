@@ -289,6 +289,8 @@ A system's cover comes from the first of these that exists:
 2. an image uploaded from the system's page (**Cover image**, GM/admin only),
 3. a thumbnail from one of the system's books.
 
+The **Cover image** dialog opens on the library's book covers, showing only the books in this system and in any system filed under it, so the cover you want is usually one click away. Untick **Only … and its sub-folders** to choose from the whole library, or switch to **Upload** for an image from your device or clipboard. A book cover chosen this way is copied, so it counts as an uploaded image (option 2) - which is also how a container, which never takes a book's thumbnail on its own, can show one of its books' covers.
+
 A `cover.*` / `folder.*` image at a system's folder root is artwork only — it is not also indexed as a book. The same name deeper in the tree (in a category folder, say) is an ordinary image book.
 
 A container never takes a book's thumbnail, not even one from its shared shelf, so options 1 and 2 are the only ones available to it:

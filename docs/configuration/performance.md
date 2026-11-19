@@ -4,6 +4,8 @@
 
 On first startup Grimoire scans the library and indexes every PDF page for full-text search. This can take several minutes for large collections. The index is stored in the data volume and subsequent startups are fast.
 
+The first start after upgrading to 1.11 reorganises the search index once, so a book's pages can be looked up without reading the whole index. On a very large library this takes a few minutes. It is logged as it goes, is safe to interrupt (the next start carries on from where it stopped), and needs about twice the index's disk space while it runs. Books already indexed stay searchable afterwards without being re-read.
+
 New files are picked up by themselves while the library is [watched for changes](/guide/library-structure#watching-for-changes), the default. Use the **Rescan** button in the sidebar to pick them up by hand, or configure a scheduled rescan in **Settings → Library → Scanning** - on a slow server you can turn watching off and scan at a quiet hour instead. For large libraries you can also rescan a single corner: every system, category, subfolder, and map/token/audio group has its own rescan button that re-scans just that folder.
 
 ### Very large images
@@ -94,7 +96,22 @@ Out of the box Grimoire runs one worker process and settles at roughly 250 MB on
 
 - **`PAGE_RECLAIM_INTERVAL`** (default `10`) - lower it (e.g. `3`) to keep peaks down when several people read at once. It costs a few percent of render speed.
 - **`PAGE_IDLE_RELEASE`** (default `300`) - how long reading has to stop before open books are closed and their memory released. The first page after that reopens the book, which is quick.
+- **`IDLE_RELEASE`** (default `600`) - how long the server has to go without a request before it hands unused memory back. A library scan and a busy stretch of browsing both leave Grimoire larger than it started; this, and the same clean-up at the end of every scan, bring it back down (measured after scanning a 2,500-file library: 355 MB before, 299 MB after).
 - **`OCR_CONCURRENCY`** - each parallel OCR job adds 50-250 MB while it runs (see [Speeding it up](#speeding-it-up)).
+
+### When nobody is using it
+
+Grimoire is meant to be left running, so it does next to nothing while idle:
+
+- Its background jobs (the scheduled rescan and backup, the library watcher, session clean-up) sleep until their next run.
+- The web server wakes once a second, not ten times.
+- A browser tab left open stops asking the server for scan progress and new log lines once it is hidden, or after five minutes without a click, key press or mouse movement. It asks again the moment you come back.
+- The container's health check runs every 30 seconds and is kept as light as it can be.
+
+Two settings do keep an idle server busy, and both are worth a look if `docker stats` shows Grimoire using CPU with nobody on it:
+
+- **Watching a network share.** On NFS, SMB and similar mounts Grimoire cannot be told about changes, so it [lists the whole library](/guide/library-structure#watching-for-changes) every `LIBRARY_WATCH_POLL_INTERVAL` seconds (two minutes by default). On a large library that is real work. Raise the interval, or turn watching off and use a scheduled rescan.
+- **`WORKERS` above 1.** Each worker is a whole copy of the app and idles on its own.
 
 ## Workers
 

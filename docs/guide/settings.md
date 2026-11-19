@@ -14,7 +14,7 @@ anyone else.
 | Area            | What's in it                                                                                   |
 | --------------- | ---------------------------------------------------------------------------------------------- |
 | **Account**     | Profile (display name, email), Password & sessions (change password, active sessions), and deleting your account |
-| **Preferences** | Language & theme (light, dark or system; Grimoire's gold palette or the steel Codex one; installed themes), and Reading & browsing (the reader, how the library lists things, content preferences) |
+| **Preferences** | Language & theme (light, dark or system; Grimoire's gold palette or the steel Codex one; installed themes), the stats your sidebar shows, and Reading & browsing (the reader, how the library lists things, content preferences) |
 | **Connections** | Your OPDS feed for e-reader apps, your [API keys](/api#api-keys), and the [share links](/guide/sharing) you have made |
 
 API keys and share links only show up when you are allowed to make them.
@@ -77,7 +77,20 @@ Campaigns and Characters sit under a **Role-playing** heading and
 goes when everything under it is hidden. A campaign's guest sees only the role-playing group,
 and a league's guest only the wargaming one.
 
-**Sidebar Stats** picks the counts shown at the foot of the sidebar.
+**Sidebar Stats** picks up to 10 counts and sizes for the foot of the sidebar, and their order:
+tick the ones to show (grouped in columns as Systems, Books, Pages, Collections, Variants and
+Sizes), and drag a ticked one by its handle in the numbered list above them to move it (or
+focus the handle and use the up and down arrow keys). This is everyone's default.
+
+Anyone can choose their own instead, the same way, under **Preferences → Sidebar stats**;
+**Use the default** there goes back to the admin's.
+
+Click the stats at the foot of the sidebar, or **All stats** under them, to open every stat.
+On a phone, **All stats** is in the **More** drawer.
+
+- **Systems, books and pages** in a table with a row for role-playing, a row for wargaming, and a total row
+- **Size on disk** for role-playing books, wargame books, maps, tokens, 3D models and audio, ending with the whole library
+- **Items and variants**: books, maps, tokens, 3D models and audio, each with its variants and the two added up, then the indexed books
 
 ---
 
